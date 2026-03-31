@@ -1,0 +1,25 @@
+# Gene pair to analyze
+gene1: "ING5"
+gene2: "FOXP1"
+
+# AML sample prefix
+aml_prefix: "TCGA-AB"
+
+# Correlation plot settings
+plot_xlim: 8
+plot_ylim: 8
+pancancer_color: "#9370DB"
+aml_color: "#DB7093"
+
+# Survival plot settings
+pancancer_xlim_days: 365
+pancancer_break_time: 73
+aml_xlim_days: 100
+aml_break_time: 20
+
+# Cutpoint method: "optimal" or "median"
+split_method: "optimal"
+
+# Data files
+expression_url: "https://toil-xena-hub.s3.us-east-1.amazonaws.com/download/tcga_RSEM_gene_tpm.gz"
+clinical_file: "data/TCGA_master_clinical_survival.csv"
