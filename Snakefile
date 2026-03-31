@@ -27,7 +27,9 @@ rule correlation:
         expression="results/expression_clean.tsv"
     output:
         pancancer="results/correlation_pancancer.png",
+        pancancer_gh="results/correlation_pancancer_github.png",
         aml="results/correlation_aml.png",
+        aml_gh="results/correlation_aml_github.png",
         top_csv="results/{gene1}_{gene2}_top.csv".format(
             gene1=config["gene1"], gene2=config["gene2"]
         )
@@ -43,7 +45,9 @@ rule survival:
         clinical=config["clinical_file"]
     output:
         pancancer="results/survival_pancancer.png",
-        aml="results/survival_aml.png"
+        pancancer_gh="results/survival_pancancer_github.png",
+        aml="results/survival_aml.png",
+        aml_gh="results/survival_aml_github.png"
     log:
         "logs/survival.log"
     shell:

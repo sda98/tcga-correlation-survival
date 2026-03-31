@@ -345,7 +345,7 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
     plt.subplots_adjust(hspace=0.30)
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     github_path = output_path.replace(".png", "_github.png")
-    plt.savefig(github_path, dpi=80, bbox_inches="tight")
+    plt.savefig(github_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"  Saved plot: {output_path}")
 

@@ -221,7 +221,7 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
     plt.savefig(output_path, dpi=600, bbox_inches="tight")
     # Save smaller version for GitHub README
     github_path = output_path.replace(".png", "_github.png")
-    plt.savefig(github_path, dpi=80, bbox_inches="tight")
+    plt.savefig(github_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"  Saved plot: {output_path}")
 
