@@ -343,7 +343,9 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
     ax_risk.tick_params(left=False, bottom=False)
 
     plt.subplots_adjust(hspace=0.30)
-    plt.savefig(output_path, dpi=600, bbox_inches="tight")
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    github_path = output_path.replace(".png", "_github.png")
+    plt.savefig(github_path, dpi=80, bbox_inches="tight")
     plt.close()
     print(f"  Saved plot: {output_path}")
 
@@ -394,7 +396,7 @@ def main():
 
     make_km_plot(
         dat_aml, GENE1, GENE2,
-        title_prefix="AML",
+        title_prefix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
         xlim_days=100,
         break_time=20,

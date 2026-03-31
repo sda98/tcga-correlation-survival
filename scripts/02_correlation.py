@@ -157,15 +157,11 @@ def clip_line_to_box(slope, intercept, xlim, ylim):
     return (p1[0], p1[1], p2[0], p2[1])
 
 
-def build_annotation(slope, intercept, rho, pval_str):
+def build_annotation(rho, pval_str):
     """
     Build the annotation string for the plot.
     """
-    slope_str = f"{slope:.3g}"
-    int_abs = f"{abs(intercept):.3g}"
-    sign = "+" if intercept >= 0 else "−"
-
-    return f"Y = {slope_str}X {sign} {int_abs}\nρ = {rho}\nP {pval_str}"
+    return f"ρ = {rho}\nP {pval_str}"
 
 
 def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
@@ -173,7 +169,7 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
     """
     Create a scatter plot with TLS regression line and stats annotation.
     """
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(8, 9.5))
 
     x = expr_df[gene1].values
     y = expr_df[gene2].values
@@ -182,8 +178,11 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
     ax.scatter(x, y, s=50, facecolors=point_color, edgecolors="black",
                linewidths=0.6, zorder=2)
 
-    # Regression line clipped to box
-    line_coords = clip_line_to_box(slope, intercept, xlim, ylim)
+    # Regression line clipped to data range with padding
+    x_min, x_max = float(x.min()), float(x.max())
+    x_pad = 0.1 * (x_max - x_min)
+    line_xlim = (x_min - x_pad, x_max + x_pad)
+    line_coords = clip_line_to_box(slope, intercept, line_xlim, ylim)
     if line_coords:
         ax.plot(
             [line_coords[0], line_coords[2]],
@@ -192,12 +191,13 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
         )
 
     # Annotation text
-    ax.text(xlim[0] + 0.1, ylim[1] - 0.1, annotation,
+    ax.text(xlim[0] + 0.2, ylim[1] - 0.5, annotation,
             fontsize=19, verticalalignment="top", horizontalalignment="left")
             
     # Axis formatting
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
+    ax.set_aspect("equal")
     ax.set_xticks([0, 2, 4, 6, 8])
     ax.set_yticks([0, 2, 4, 6, 8]) 
     ax.set_xlabel(f"{gene1} expression (log₂(TPM + 1))", fontsize=22, labelpad = 12)
@@ -209,8 +209,19 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
         spine.set_edgecolor("black")
         spine.set_linewidth(0.8)
 
+    ax.set_title(
+        title_suffix,
+        fontsize=27, fontweight="bold",
+        loc="left",
+        pad=25,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFCC", edgecolor="black"),
+    )
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=600, bbox_inches="tight")
+    # Save smaller version for GitHub README
+    github_path = output_path.replace(".png", "_github.png")
+    plt.savefig(github_path, dpi=80, bbox_inches="tight")
     plt.close()
     print(f"  Saved plot: {output_path}")
 
@@ -245,7 +256,7 @@ def main():
     print(f"  TLS: slope = {slope:.4f}, intercept = {intercept:.4f}")
 
     # Annotation and plot
-    annotation = build_annotation(slope, intercept, rho, pval_str)
+    annotation = build_annotation(rho, pval_str)
     make_scatter_plot(
         expr_pan, GENE1, GENE2, slope, intercept, annotation,
         XLIM, YLIM,
@@ -280,7 +291,7 @@ def main():
     print(f"  TLS: slope = {slope_aml:.4f}, intercept = {intercept_aml:.4f}")
 
     # Annotation and plot
-    annotation_aml = build_annotation(slope_aml, intercept_aml, rho_aml, pval_aml_str)
+    annotation_aml = build_annotation(rho_aml, pval_aml_str)
     make_scatter_plot(
         expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
         XLIM, YLIM,

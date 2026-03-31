@@ -218,3 +218,10 @@ data/PANCAN_survival.txt
 # Large intermediate results
 results/expression_clean.tsv
 results/survival_clean.tsv
+
+# Full-size plot images (too large for GitHub)
+results/correlation_pancancer.png
+results/correlation_aml.png
+results/survival_pancancer.png
+results/survival_aml.png
+results/dag.png
