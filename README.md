@@ -156,4 +156,6 @@ MIT
 
 ## Author
 
-Sergey Dadoyan — M.Sc. Biochemistry and Molecular Biology (Bioinformatics), University of Calgary
+**Sergey Dadoyan, M.Sc.**  
+Bioinformatician 
+[LinkedIn](https://linkedin.com/in/sergeydadoyan) | [GitHub](https://github.com/sergeydadoyan)
