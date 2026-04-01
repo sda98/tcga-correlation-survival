@@ -296,7 +296,7 @@ def main():
         expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
         XLIM, YLIM,
         point_color="#DB7093",  # R used #DB7093 for AML
-        title_suffix="AML",
+        title_suffix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "correlation_aml.png"),
     )
 
