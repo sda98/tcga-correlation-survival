@@ -74,7 +74,7 @@ conda env create -f envs/environment.yaml
 conda activate tcga-pipeline
 
 # Run the full pipeline
-snakemake --cores 1
+snakemake --cores 1  # number of cores can be changed
 ```
 
 The pipeline automatically downloads the expression data (~700 MB) on first run. Clinical survival data is included in the repository.
