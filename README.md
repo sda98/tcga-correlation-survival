@@ -1,6 +1,6 @@
 # TCGA Pan-Cancer Correlation and Survival Analysis Pipeline
 
-A reproducible Python + Snakemake pipeline for analyzing gene expression correlations and survival outcomes across TCGA pan-cancer and AML cohorts. Originally developed in R for my M.Sc. thesis, rebuilt in Python with automated workflow management.
+A reproducible Python + Snakemake pipeline for analyzing gene expression correlations and survival outcomes across TCGA pan-cancer and AML cohorts. 
 
 ## Results
 
