@@ -60,7 +60,7 @@ Orchestrated by Snakemake — run the full analysis with one command.
 
 - Python 3.10+
 - Snakemake
-- conda or mamba (recommended)
+- conda or mamba 
 
 ### Setup
 
