@@ -77,7 +77,7 @@ conda activate tcga-pipeline
 snakemake --cores 1  # number of cores can be changed
 ```
 
-The pipeline automatically downloads the expression data (~700 MB) on first run. Clinical survival data is included in the repository.
+The pipeline automatically downloads the expression data zipped file (~700 MB) on first run. Clinical survival data is included in the repository.
 
 ### Run individual steps
 
