@@ -13,10 +13,10 @@ Spearman rank correlation with Total Least Squares (orthogonal) regression, comp
 | **Spearman ρ** | 0.21 | 0.39 |
 | **P-value** | < 2.2e-16 | 7.9e-08 |
 
-**Pan-Cancer (n = 10,535):** Weak but highly significant positive correlation. The steep TLS regression line reflects the narrow spread of ING5 relative to FOXP1 across cancer types.
+**Pan-Cancer (n = 10,535):** Weak but highly significant positive correlation. 
 ![Pan-Cancer Correlation](results/correlation_pancancer_github.png)
 
-**AML (n = 173):** Moderate positive correlation within the AML cohort, with FOXP1 expression increasing proportionally with ING5.
+**AML (n = 173):** Moderate positive correlation within the AML cohort.
 ![AML Correlation](results/correlation_aml_github.png)
 
 ### Survival Analysis
