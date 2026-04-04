@@ -53,8 +53,6 @@ with open("config.yaml") as f:
     config = yaml.safe_load(f)
 
 AML_PREFIX = config["aml_prefix"]
-XLIM = (-0.1, config["plot_xlim"] + 0.1)
-YLIM = (-0.1, config["plot_ylim"] + 0.1)
 
 def load_and_merge(expression_file, survival_file, gene1, gene2, sample_filter=None):
     """
@@ -131,7 +129,7 @@ def find_optimal_cutpoint(dat, expr_col, time_col="OS.time", event_col="OS", min
     return best_cut
 
 
-def assign_groups(dat, gene1, gene2, split="optimal"):
+def assign_groups(dat, gene1, gene2, split=config["split_method"]):
     """
     Split patients into High/Low for each gene and create combo groups.
     """
@@ -384,7 +382,7 @@ def main():
     dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2)
     print(f"  Merged samples: {len(dat_pan)}")
 
-    dat_pan = assign_groups(dat_pan, GENE1, GENE2, split="optimal")
+    dat_pan = assign_groups(dat_pan, GENE1, GENE2, split=config["split_method"])
 
     make_km_plot(
         dat_pan, GENE1, GENE2,
