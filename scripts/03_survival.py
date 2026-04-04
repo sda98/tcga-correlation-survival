@@ -16,6 +16,8 @@ from lifelines.statistics import logrank_test
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.lines import Line2D
+import argparse
+import yaml
 
 matplotlib.use("Agg")
 
@@ -27,11 +29,6 @@ matplotlib.use("Agg")
 EXPRESSION_FILE = os.path.join("results", "expression_clean.tsv")
 SURVIVAL_FILE = os.path.join("data", "TCGA_master_clinical_survival.csv")
 RESULTS_DIR = "results"
-
-# Can be changed based on the genes and cancer type of interest
-GENE1 = "ING5"   
-GENE2 = "FOXP1"
-AML_PREFIX = "TCGA-AB"
 
 # Colors 
 GROUP_COLORS = {
@@ -45,6 +42,19 @@ GROUP_COLORS = {
 # ============================================================
 # Helper functions
 # ============================================================
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gene1", required=True)
+    parser.add_argument("--gene2", required=True)
+    return parser.parse_args()
+
+with open("config.yaml") as f:
+    config = yaml.safe_load(f)
+
+AML_PREFIX = config["aml_prefix"]
+XLIM = (-0.1, config["plot_xlim"] + 0.1)
+YLIM = (-0.1, config["plot_ylim"] + 0.1)
 
 def load_and_merge(expression_file, survival_file, gene1, gene2, sample_filter=None):
     """
@@ -354,6 +364,9 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
 # ============================================================
 
 def main():
+    args = parse_args()
+    GENE1 = args.gene1
+    GENE2 = args.gene2
     if not os.path.exists(EXPRESSION_FILE):
         print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
         sys.exit(1)
