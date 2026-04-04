@@ -15,6 +15,8 @@ import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib
+import argparse
+import yaml
 
 
 # Use non-interactive backend 
@@ -22,27 +24,28 @@ matplotlib.use("Agg")
 
 
 # ============================================================
-# Configuration
+# Directions
 # ============================================================
 
 EXPRESSION_FILE = os.path.join("results", "expression_clean.tsv")
 RESULTS_DIR = "results"
 
-# Genes to analyze (Other genes can be used)
-GENE1 = "ING5"
-GENE2 = "FOXP1"
-
-# AML samples start with this prefix
-AML_PREFIX = "TCGA-AB"
-
-# Plot axis limits
-XLIM = (-0.1, 8.1)
-YLIM = (-0.1, 8.1)
-
-
 # ============================================================
 # Helper functions
 # ============================================================
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gene1", required=True)
+    parser.add_argument("--gene2", required=True)
+    return parser.parse_args()
+
+with open("config.yaml") as f:
+    config = yaml.safe_load(f)
+
+AML_PREFIX = config["aml_prefix"]
+XLIM = (-0.1, config["plot_xlim"] + 0.1)
+YLIM = (-0.1, config["plot_ylim"] + 0.1)
 
 def load_gene_pair(expression_file, gene1, gene2, sample_filter=None):
     """
@@ -231,6 +234,9 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
 # ============================================================
 
 def main():
+    args = parse_args()
+    GENE1 = args.gene1
+    GENE2 = args.gene2
     if not os.path.exists(EXPRESSION_FILE):
         print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
         sys.exit(1)
