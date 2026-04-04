@@ -1,5 +1,9 @@
 configfile: "config.yaml"
 
+if "gene1" not in config or "gene2" not in config:
+    raise ValueError(
+        "Specify two genes: snakemake --cores 1 --config gene1=GENE gene2=GENE"
+    )
 
 rule all:
     input:
@@ -36,7 +40,10 @@ rule correlation:
     log:
         "logs/correlation.log"
     shell:
-        "python scripts/02_correlation.py 2> {log}"
+        "python scripts/02_correlation.py "
+        "--gene1 {config[gene1]} "
+        "--gene2 {config[gene2]} "
+        "2> {log}"
 
 
 rule survival:
@@ -51,4 +58,7 @@ rule survival:
     log:
         "logs/survival.log"
     shell:
-        "python scripts/03_survival.py 2> {log}"
+        "python scripts/03_survival.py "
+        "--gene1 {config[gene1]} "
+        "--gene2 {config[gene2]} "
+        "2> {log}"
