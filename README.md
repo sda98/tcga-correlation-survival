@@ -1,5 +1,7 @@
 # TCGA Pan-Cancer Correlation and Survival Analysis Pipeline
 
+Note: The code is currently being updated by the author (Sergey Dadoyan), so it may not currently run as expected. If you have any questions, please contact the author.
+
 A reproducible Python + Snakemake pipeline for analyzing gene expression correlations and survival outcomes across TCGA pan-cancer and AML cohorts. 
 
 ## Results
