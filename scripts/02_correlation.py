@@ -168,7 +168,7 @@ def build_annotation(rho, pval_str):
 
 
 def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
-                      xlim, ylim, point_color, title_suffix, output_path):
+                      point_color, title_suffix, output_path):
     """
     Create a scatter plot with TLS regression line and stats annotation.
     """
@@ -176,6 +176,14 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
 
     x = expr_df[gene1].values
     y = expr_df[gene2].values
+                          
+    # Compute symmetric axis limits from data
+    data_max = float(max(x.max(), y.max()))
+    max_tick = int(np.ceil(data_max))    # smallest integer >= data_max
+    xlim = (-0.25, max_tick + 0.25)
+    ylim = xlim                          # symmetric: same range on both axes
+    tick_step = 2 if max_tick >= 12 else 1
+    ticks = list(range(0, max_tick + 1, tick_step))
 
     # Scatter points
     ax.scatter(x, y, s=50, facecolors=point_color, edgecolors="black",
@@ -201,8 +209,8 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     ax.set_aspect("equal")
-    ax.set_xticks([0, 2, 4, 6, 8])
-    ax.set_yticks([0, 2, 4, 6, 8]) 
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks) 
     ax.set_xlabel(f"{gene1} expression (log₂(TPM + 1))", fontsize=22, labelpad = 12)
     ax.set_ylabel(f"{gene2} expression (log₂(TPM + 1))", fontsize=22, labelpad = 12)
     ax.tick_params(labelsize=29, colors="black", width=3, length = 6)
@@ -268,7 +276,6 @@ def main():
     annotation = build_annotation(rho, pval_str)
     make_scatter_plot(
         expr_pan, GENE1, GENE2, slope, intercept, annotation,
-        XLIM, YLIM,
         point_color="#FF7F50",  
         title_suffix="Pan-Cancer",
         output_path=os.path.join(RESULTS_DIR, "correlation_pancancer.png"),
@@ -296,10 +303,9 @@ def main():
 
     # Annotation and plot
     annotation_aml = build_annotation(rho_aml, pval_aml_str)
-    make_scatter_plot(
-        expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
-        XLIM, YLIM,
-        point_color="#DB7093",  # R used #DB7093 for AML
+        make_scatter_plot(
+        expr_pan, GENE1, GENE2, slope, intercept, annotation,
+        point_color="#FF7F50",
         title_suffix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "correlation_aml.png"),
     )
