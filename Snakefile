@@ -32,7 +32,6 @@ rule correlation:
         pancancer_gh="results/correlation_pancancer_github.png",
         aml="results/correlation_aml.png",
         aml_gh="results/correlation_aml_github.png",
-        top_csv="results/{genes}_top.csv".format(genes=config["genes"].replace(",", "_"))
     log:
         "logs/correlation.log"
     shell:
