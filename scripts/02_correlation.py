@@ -216,6 +216,12 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                     stars = ""
                 cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
 
+    # Dynamic font sizes that scale inversely with N
+    cell_font = max(8, 20 - n)
+    label_font = max(10, 22 - n)
+    title_font = max(14, 28 - n)
+    cbar_font = max(10, 18 - n // 2)
+
     # Plot
     fig, ax = plt.subplots(figsize=(1.2 * n + 2, 1.2 * n + 2))
     im = ax.imshow(rho_matrix, cmap="RdBu_r", vmin=-1, vmax=1, aspect="equal")
@@ -225,32 +231,37 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
         for j in range(n):
             color = "white" if abs(rho_matrix[i, j]) > 0.5 else "black"
             ax.text(j, i, cell_text[i, j], ha="center", va="center",
-                    fontsize=14, color=color, fontweight="bold")
+                    fontsize=cell_font, color=color, fontweight="bold")
 
     # Ticks and labels
     ax.set_xticks(range(n))
     ax.set_yticks(range(n))
-    ax.set_xticklabels(genes, fontsize=14, rotation=45, ha="right")
-    ax.set_yticklabels(genes, fontsize=14)
+    ax.set_xticklabels(genes, fontsize=label_font, rotation=45, ha="right")
+    ax.set_yticklabels(genes, fontsize=label_font)
 
-    # Colorbar
-    cbar = plt.colorbar(im, ax=ax, shrink=0.8)
-    cbar.set_label("Spearman ρ", fontsize=14)
-    cbar.ax.tick_params(labelsize=12)
+    # Colorbar — small, top-right
+    cbar = plt.colorbar(im, ax=ax, shrink=0.35, aspect=12, pad=0.02,
+                        anchor=(0.0, 1.0), location="right")
+    cbar.set_label("Spearman ρ", fontsize=cbar_font)
+    cbar.ax.tick_params(labelsize=cbar_font - 2)
 
     # Title
-    ax.set_title(title_suffix, fontsize=18, fontweight="bold",
+    ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
                  loc="left", pad=15,
                  bbox=dict(boxstyle="round,pad=0.3",
                            facecolor="#FFFFCC", edgecolor="black"))
 
-    plt.tight_layout()
+    # Significance footnote
+    fig.text(0.5, 0.02,
+             "* p<0.05   ** p<0.01   *** p<0.001",
+             ha="center", fontsize=max(9, 14 - n // 2), style="italic")
+
+    plt.tight_layout(rect=[0, 0.04, 1, 1])  # leave room at bottom for footnote
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     github_path = output_path.replace(".png", "_github.png")
     plt.savefig(github_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"  Saved heatmap: {output_path}")
-
 
 def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
                       point_color, title_suffix, output_path):
