@@ -191,9 +191,12 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
 
     # Regression line clipped to data range with padding
     x_min, x_max = float(x.min()), float(x.max())
+    y_min, y_max = float(y.min()), float(y.max())
     x_pad = 0.1 * (x_max - x_min)
+    y_pad = 0.1 * (y_max - y_min)
     line_xlim = (x_min - x_pad, x_max + x_pad)
-    line_coords = clip_line_to_box(slope, intercept, line_xlim, ylim)
+    line_ylim = (y_min - y_pad, y_max + y_pad)
+    line_coords = clip_line_to_box(slope, intercept, line_xlim, line_ylim)
     if line_coords:
         ax.plot(
             [line_coords[0], line_coords[2]],
