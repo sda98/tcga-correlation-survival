@@ -306,7 +306,7 @@ def main():
 
     # Annotation and plot
     annotation_aml = build_annotation(rho_aml, pval_aml_str)
-        make_scatter_plot(
+    make_scatter_plot(
         expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
         point_color="#DB7093",
         title_suffix="Acute Myeloid Leukemia",
