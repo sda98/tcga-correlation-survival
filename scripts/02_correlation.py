@@ -304,8 +304,8 @@ def main():
     # Annotation and plot
     annotation_aml = build_annotation(rho_aml, pval_aml_str)
         make_scatter_plot(
-        expr_pan, GENE1, GENE2, slope, intercept, annotation,
-        point_color="#FF7F50",
+        expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
+        point_color="#DB7093",
         title_suffix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "correlation_aml.png"),
     )
