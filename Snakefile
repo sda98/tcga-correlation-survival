@@ -8,8 +8,7 @@ if "genes" not in config:
 rule all:
     input:
         "results/expression_clean.tsv",
-        "results/correlation_pancancer.png",
-        "results/correlation_aml.png",
+        "results/correlation_done.txt",
         "results/survival_pancancer.png",
         "results/survival_aml.png"
 
@@ -28,10 +27,7 @@ rule correlation:
     input:
         expression="results/expression_clean.tsv"
     output:
-        pancancer="results/correlation_pancancer.png",
-        pancancer_gh="results/correlation_pancancer_github.png",
-        aml="results/correlation_aml.png",
-        aml_gh="results/correlation_aml_github.png",
+        "results/correlation_done.txt"
     log:
         "logs/correlation.log"
     shell:
