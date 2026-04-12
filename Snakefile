@@ -1,8 +1,8 @@
 configfile: "config.yaml"
 
-if "gene1" not in config or "gene2" not in config:
+if "genes" not in config:
     raise ValueError(
-        "Specify two genes: snakemake --cores 1 --config genes
+        "Specify genes: snakemake --cores 1 --config genes=GENE,GENE"
     )
 
 rule all:
@@ -12,7 +12,6 @@ rule all:
         "results/correlation_aml.png",
         "results/survival_pancancer.png",
         "results/survival_aml.png"
-
 
 rule data_prep:
     input:
@@ -25,7 +24,6 @@ rule data_prep:
     shell:
         "python scripts/01_data_prep.py 2> {log}"
 
-
 rule correlation:
     input:
         expression="results/expression_clean.tsv"
@@ -34,17 +32,13 @@ rule correlation:
         pancancer_gh="results/correlation_pancancer_github.png",
         aml="results/correlation_aml.png",
         aml_gh="results/correlation_aml_github.png",
-        top_csv="results/{gene1}_{gene2}_top.csv".format(
-            gene1=config["gene1"], gene2=config["gene2"]
-        )
+        top_csv="results/{genes}_top.csv".format(genes=config["genes"].replace(",", "_"))
     log:
         "logs/correlation.log"
     shell:
         "python scripts/02_correlation.py "
-        "--gene1 {config[gene1]} "
-        "--gene2 {config[gene2]} "
+        "--genes {config[genes]} "
         "2> {log}"
-
 
 rule survival:
     input:
@@ -59,6 +53,5 @@ rule survival:
         "logs/survival.log"
     shell:
         "python scripts/03_survival.py "
-        "--gene1 {config[gene1]} "
-        "--gene2 {config[gene2]} "
+        "--genes {config[genes]} "
         "2> {log}"
