@@ -2,7 +2,7 @@ configfile: "config.yaml"
 
 if "gene1" not in config or "gene2" not in config:
     raise ValueError(
-        "Specify two genes: snakemake --cores 1 --config gene1=GENE gene2=GENE"
+        "Specify two genes: snakemake --cores 1 --config genes
     )
 
 rule all:
