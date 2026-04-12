@@ -44,8 +44,6 @@ with open("config.yaml") as f:
     config = yaml.safe_load(f)
 
 AML_PREFIX = config["aml_prefix"]
-XLIM = (-0.1, config["plot_xlim"] + 0.1)
-YLIM = (-0.1, config["plot_ylim"] + 0.1)
 
 def load_gene_pair(expression_file, gene1, gene2, sample_filter=None):
     """
@@ -71,6 +69,20 @@ def load_gene_pair(expression_file, gene1, gene2, sample_filter=None):
     expr_df = expr_df.dropna()
 
     return expr_df
+
+def load_genes(expression_file, genes, sample_filter=None):
+    """
+    Extract N genes from the expression matrix.
+    Returns DataFrame with samples as rows, genes as columns.
+    """
+    tpm = pd.read_csv(expression_file, sep="\t", index_col=0)
+    expr = tpm.loc[genes]
+    if sample_filter:
+        cols = [c for c in expr.columns if c.startswith(sample_filter)]
+        expr = expr[cols]
+    expr_df = expr.T
+    expr_df.columns = genes
+    return expr_df.dropna()
 
 
 def spearman_correlation(x, y):
@@ -166,6 +178,79 @@ def build_annotation(rho, pval_str):
     """
     return f"ρ = {rho}\nP {pval_str}"
 
+def make_heatmap(expr_df, genes, title_suffix, output_path):
+    """
+    Compute pairwise Spearman correlations across N genes
+    and render a heatmap with rho values and significance asterisks.
+    """
+    n = len(genes)
+    rho_matrix = np.ones((n, n))
+    pval_matrix = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                rho_matrix[i, j] = 1.0
+                pval_matrix[i, j] = 0.0
+            else:
+                rho, pval = stats.spearmanr(expr_df[genes[i]], expr_df[genes[j]])
+                rho_matrix[i, j] = rho
+                pval_matrix[i, j] = pval
+
+    # Build cell text: "rho\nstars" (no stars on diagonal)
+    cell_text = np.empty((n, n), dtype=object)
+    for i in range(n):
+        for j in range(n):
+            rho = rho_matrix[i, j]
+            pval = pval_matrix[i, j]
+            if i == j:
+                cell_text[i, j] = f"{rho:.2f}"
+            else:
+                if pval < 0.001:
+                    stars = "***"
+                elif pval < 0.01:
+                    stars = "**"
+                elif pval < 0.05:
+                    stars = "*"
+                else:
+                    stars = ""
+                cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(1.2 * n + 2, 1.2 * n + 2))
+    im = ax.imshow(rho_matrix, cmap="RdBu_r", vmin=-1, vmax=1, aspect="equal")
+
+    # Cell text
+    for i in range(n):
+        for j in range(n):
+            color = "white" if abs(rho_matrix[i, j]) > 0.5 else "black"
+            ax.text(j, i, cell_text[i, j], ha="center", va="center",
+                    fontsize=14, color=color, fontweight="bold")
+
+    # Ticks and labels
+    ax.set_xticks(range(n))
+    ax.set_yticks(range(n))
+    ax.set_xticklabels(genes, fontsize=14, rotation=45, ha="right")
+    ax.set_yticklabels(genes, fontsize=14)
+
+    # Colorbar
+    cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+    cbar.set_label("Spearman ρ", fontsize=14)
+    cbar.ax.tick_params(labelsize=12)
+
+    # Title
+    ax.set_title(title_suffix, fontsize=18, fontweight="bold",
+                 loc="left", pad=15,
+                 bbox=dict(boxstyle="round,pad=0.3",
+                           facecolor="#FFFFCC", edgecolor="black"))
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    github_path = output_path.replace(".png", "_github.png")
+    plt.savefig(github_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved heatmap: {output_path}")
+
 
 def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
                       point_color, title_suffix, output_path):
@@ -244,67 +329,41 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
 # Main analysis
 # ============================================================
 
-def main():
-    args = parse_args()
-    genes = [g.strip() for g in args.genes.split(",")]
-    if len(genes) < 2:
-        print("Error: provide at least 2 genes.")
-        sys.exit(1)
+def run_scatter_analysis(genes):
     GENE1, GENE2 = genes[0], genes[1]
-    if not os.path.exists(EXPRESSION_FILE):
-        print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
-        sys.exit(1)
 
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-
-    # ==========================
-    # Pan-cancer analysis
-    # ==========================
     print("=== Pan-Cancer Correlation ===")
-
-    # Load gene pair
     expr_pan = load_gene_pair(EXPRESSION_FILE, GENE1, GENE2)
     print(f"  Samples: {len(expr_pan)}")
 
-    # Spearman correlation
     rho, pval = spearman_correlation(expr_pan[GENE1], expr_pan[GENE2])
     pval_str = format_pvalue(pval)
     print(f"  Spearman rho = {rho}, P {pval_str}")
 
-    # TLS regression
     slope, intercept = tls_regression(expr_pan[GENE1].values, expr_pan[GENE2].values)
     print(f"  TLS: slope = {slope:.4f}, intercept = {intercept:.4f}")
 
-    # Annotation and plot
     annotation = build_annotation(rho, pval_str)
     make_scatter_plot(
         expr_pan, GENE1, GENE2, slope, intercept, annotation,
-        point_color="#FF7F50",  
+        point_color="#FF7F50",
         title_suffix="Pan-Cancer",
         output_path=os.path.join(RESULTS_DIR, "correlation_pancancer.png"),
     )
 
-    # ==========================
-    # AML analysis
-    # ==========================
     print("\n=== AML Correlation ===")
-
-    # Load gene pair filtered to AML samples
     expr_aml = load_gene_pair(EXPRESSION_FILE, GENE1, GENE2, sample_filter=AML_PREFIX)
     print(f"  AML samples: {len(expr_aml)}")
 
-    # Spearman correlation
     rho_aml, pval_aml = spearman_correlation(expr_aml[GENE1], expr_aml[GENE2])
     pval_aml_str = format_pvalue(pval_aml)
     print(f"  Spearman rho = {rho_aml}, P {pval_aml_str}")
 
-    # TLS regression
     slope_aml, intercept_aml = tls_regression(
         expr_aml[GENE1].values, expr_aml[GENE2].values
     )
     print(f"  TLS: slope = {slope_aml:.4f}, intercept = {intercept_aml:.4f}")
 
-    # Annotation and plot
     annotation_aml = build_annotation(rho_aml, pval_aml_str)
     make_scatter_plot(
         expr_aml, GENE1, GENE2, slope_aml, intercept_aml, annotation_aml,
@@ -312,6 +371,45 @@ def main():
         title_suffix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "correlation_aml.png"),
     )
+
+
+def run_heatmap_analysis(genes):
+    print(f"=== Pan-Cancer Correlation Heatmap ({len(genes)} genes) ===")
+    expr_pan = load_genes(EXPRESSION_FILE, genes)
+    print(f"  Samples: {len(expr_pan)}")
+    make_heatmap(expr_pan, genes,
+                 title_suffix="Pan-Cancer",
+                 output_path=os.path.join(RESULTS_DIR, "correlation_heatmap_pancancer.png"))
+
+    print(f"\n=== AML Correlation Heatmap ({len(genes)} genes) ===")
+    expr_aml = load_genes(EXPRESSION_FILE, genes, sample_filter=AML_PREFIX)
+    print(f"  AML samples: {len(expr_aml)}")
+    make_heatmap(expr_aml, genes,
+                 title_suffix="Acute Myeloid Leukemia",
+                 output_path=os.path.join(RESULTS_DIR, "correlation_heatmap_aml.png"))
+
+
+def main():
+    args = parse_args()
+    genes = [g.strip() for g in args.genes.split(",")]
+    if len(genes) < 2:
+        print("Error: provide at least 2 genes.")
+        sys.exit(1)
+
+    if not os.path.exists(EXPRESSION_FILE):
+        print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
+        sys.exit(1)
+
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+
+    if len(genes) == 2:
+        run_scatter_analysis(genes)
+    else:
+        run_heatmap_analysis(genes)
+
+    # Flag file for Snakemake
+    with open(os.path.join(RESULTS_DIR, "correlation_done.txt"), "w") as f:
+        f.write("done\n")
 
     print("\nDone.")
 
