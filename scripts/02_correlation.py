@@ -36,8 +36,8 @@ RESULTS_DIR = "results"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gene1", required=True)
-    parser.add_argument("--gene2", required=True)
+    parser.add_argument("--genes", required=True,
+                        help="Comma-separated gene symbols, e.g. TP53,MDM2")
     return parser.parse_args()
 
 with open("config.yaml") as f:
@@ -235,8 +235,11 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
 
 def main():
     args = parse_args()
-    GENE1 = args.gene1
-    GENE2 = args.gene2
+    genes = [g.strip() for g in args.genes.split(",")]
+    if len(genes) < 2:
+        print("Error: provide at least 2 genes.")
+        sys.exit(1)
+    GENE1, GENE2 = genes[0], genes[1]
     if not os.path.exists(EXPRESSION_FILE):
         print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
         sys.exit(1)
@@ -270,11 +273,6 @@ def main():
         title_suffix="Pan-Cancer",
         output_path=os.path.join(RESULTS_DIR, "correlation_pancancer.png"),
     )
-
-    # Save high-expression samples
-    high_expr = expr_pan[(expr_pan[GENE1] > 6) & (expr_pan[GENE2] > 6)]
-    high_expr.to_csv(os.path.join(RESULTS_DIR, f"{GENE1}_{GENE2}_top.csv"))
-    print(f"  High expression samples (both > 6): {len(high_expr)}")
 
     # ==========================
     # AML analysis
