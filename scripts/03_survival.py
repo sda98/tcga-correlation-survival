@@ -181,7 +181,8 @@ def make_km_plot(dat, genes, title_prefix, output_path,
     """
     Create Kaplan-Meier plot with risk table
     """
-    groups = ["Low/Low", "Low/High", "High/Low", "High/High"]
+    groups = generate_all_groups(len(genes))
+    group_colors = get_group_colors(groups)
 
     # --- Compute p-value ---
     pval = compute_logrank_pvalue(dat)
