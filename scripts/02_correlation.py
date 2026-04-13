@@ -217,11 +217,12 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                 cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
 
     # Font sizes
-    cell_font = min(22, 10 + n // 2)
-    label_font = min(36, 16 + n)
-    title_font = min(44, 22 + n)           
-    cbar_font = min(36, 16 + n)             
-    footnote_font = min(22, 12 + n)
+    cell_font = min(26, 14 + n)
+    label_font = min(32, 14 + n)
+    title_font = min(44, 22 + n)
+    cbar_label_font = min(32, 16 + n)
+    cbar_tick_font = min(24, 12 + n // 2 * 3 // 2)
+    footnote_font = min(24, 12 + n)
 
     # Plot
     fig, ax = plt.subplots(figsize=(1.2 * n + 2, 1.2 * n + 2))
@@ -237,21 +238,20 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     # Ticks and labels
     ax.set_xticks(range(n))
     ax.set_yticks(range(n))
-    ax.set_xticklabels(genes, fontsize=label_font, rotation=45, ha="right")
-    ax.set_yticklabels(genes, fontsize=label_font)
+    ax.set_xticklabels(genes, fontsize=label_font, rotation=60, ha="right",
+                       fontstyle="italic")
+    ax.set_yticklabels(genes, fontsize=label_font, fontstyle="italic")
 
     # Colorbar — thicker, vertically centered, ticks every 0.5
-    cbar = plt.colorbar(im, ax=ax, shrink=0.45, aspect=6, pad=0.02,
+    cbar = plt.colorbar(im, ax=ax, shrink=0.45, aspect=10, pad=0.02,
                         anchor=(0.0, 0.5), location="right",
                         ticks=[-1, -0.5, 0, 0.5, 1])
-    cbar.set_label("Spearman ρ", fontsize=cbar_font, fontweight="bold")
-    cbar.ax.tick_params(labelsize=cbar_font)
+    cbar.set_label("Spearman ρ", fontsize=cbar_label_font, fontweight="bold")
+    cbar.ax.tick_params(labelsize=cbar_tick_font)
 
     # Title
-    ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
-                 loc="left", pad=25,
-                 bbox=dict(boxstyle="round,pad=0.3",
-                           facecolor="#FFFFCC", edgecolor="black"))
+     ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
+                 loc="left", pad=25))
 
     # Significance footnote
     fig.text(0.5, 0.02,
