@@ -45,8 +45,8 @@ GROUP_COLORS = {
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gene1", required=True)
-    parser.add_argument("--gene2", required=True)
+    parser.add_argument("--genes", required=True,
+                        help="Comma-separated gene symbols")
     return parser.parse_args()
 
 with open("config.yaml") as f:
@@ -361,10 +361,56 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
 # Main analysis
 # ============================================================
 
+def run_2gene_survival(genes):
+    GENE1, GENE2 = genes[0], genes[1]
+
+    print("=== Pan-Cancer Survival ===")
+    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2)
+    print(f"  Merged samples: {len(dat_pan)}")
+    dat_pan = assign_groups(dat_pan, GENE1, GENE2, split=config["split_method"])
+    make_km_plot(
+        dat_pan, GENE1, GENE2,
+        title_prefix="Pan-Cancer",
+        output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
+        xlim_days=config["pancancer_xlim_days"],
+        break_time=config["pancancer_break_time"],
+    )
+
+    print("\n=== AML Survival ===")
+    dat_aml = load_and_merge(
+        EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2,
+        sample_filter=AML_PREFIX,
+    )
+    print(f"  Merged AML samples: {len(dat_aml)}")
+    dat_aml = assign_groups(dat_aml, GENE1, GENE2, split=config["split_method"])
+    make_km_plot(
+        dat_aml, GENE1, GENE2,
+        title_prefix="Acute Myeloid Leukemia",
+        output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
+        xlim_days=config["aml_xlim_days"],
+        break_time=config["aml_break_time"],
+    )
+
+
+def run_3gene_survival(genes):
+    # TODO: Phase 3 step 2 — 8-group KM analysis
+    print(f"3-gene survival analysis not yet implemented (genes: {genes})")
+    sys.exit(1)
+
+
+def run_multigene_cox(genes):
+    # TODO: Phase 3 step 3 — univariate Cox + BH-FDR
+    print(f"Cox+FDR analysis not yet implemented (genes: {genes})")
+    sys.exit(1)
+
+
 def main():
     args = parse_args()
-    GENE1 = args.gene1
-    GENE2 = args.gene2
+    genes = [g.strip() for g in args.genes.split(",")]
+    if len(genes) < 2:
+        print("Error: provide at least 2 genes.")
+        sys.exit(1)
+
     if not os.path.exists(EXPRESSION_FILE):
         print(f"Error: {EXPRESSION_FILE} not found. Run 01_data_prep.py first.")
         sys.exit(1)
@@ -374,44 +420,12 @@ def main():
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    # ==========================
-    # Pan-cancer analysis
-    # ==========================
-    print("=== Pan-Cancer Survival ===")
-
-    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2)
-    print(f"  Merged samples: {len(dat_pan)}")
-
-    dat_pan = assign_groups(dat_pan, GENE1, GENE2, split=config["split_method"])
-
-    make_km_plot(
-        dat_pan, GENE1, GENE2,
-        title_prefix="Pan-Cancer",
-        output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
-        xlim_days=365,
-        break_time=73,
-    )
-
-    # ==========================
-    # AML analysis
-    # ==========================
-    print("\n=== AML Survival ===")
-
-    dat_aml = load_and_merge(
-        EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2,
-        sample_filter=AML_PREFIX,
-    )
-    print(f"  Merged AML samples: {len(dat_aml)}")
-
-    dat_aml = assign_groups(dat_aml, GENE1, GENE2, split="optimal")
-
-    make_km_plot(
-        dat_aml, GENE1, GENE2,
-        title_prefix="Acute Myeloid Leukemia",
-        output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
-        xlim_days=100,
-        break_time=20,
-    )
+    if len(genes) == 2:
+        run_2gene_survival(genes)
+    elif len(genes) == 3:
+        run_3gene_survival(genes)
+    else:
+        run_multigene_cox(genes)
 
     print("\nDone.")
 
