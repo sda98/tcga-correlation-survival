@@ -220,7 +220,7 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     cell_font = min(22, 10 + n // 2)
     label_font = min(36, 16 + n)
     title_font = min(44, 22 + n)           
-    cbar_font = min(32, 16 + n)             
+    cbar_font = min(36, 16 + n)             
     footnote_font = min(22, 12 + n)
 
     # Plot
@@ -245,11 +245,11 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                         anchor=(0.0, 0.5), location="right",
                         ticks=[-1, -0.5, 0, 0.5, 1])
     cbar.set_label("Spearman ρ", fontsize=cbar_font, fontweight="bold")
-    cbar.ax.tick_params(labelsize=cbar_font - 2)
+    cbar.ax.tick_params(labelsize=cbar_font)
 
     # Title
     ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
-                 loc="left", pad=15,
+                 loc="left", pad=25,
                  bbox=dict(boxstyle="round,pad=0.3",
                            facecolor="#FFFFCC", edgecolor="black"))
 
