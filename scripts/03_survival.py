@@ -256,8 +256,8 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
 
     # Title
     fig.text(
-        0.05, 0.98, title_prefix,
-        fontsize=29, fontweight="bold",
+        0.05, 0.94, title_prefix,
+        fontsize=32, fontweight="bold",
         verticalalignment="top",
     )
     
