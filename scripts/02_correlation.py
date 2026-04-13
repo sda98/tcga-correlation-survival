@@ -216,11 +216,11 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                     stars = ""
                 cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
 
-    # Dynamic font sizes that scale inversely with N
-    cell_font = max(8, 20 - n)
-    label_font = max(10, 22 - n)
-    title_font = max(14, 28 - n)
-    cbar_font = max(10, 18 - n // 2)
+    # Font sizes scale up with N to stay legible when figure is resized
+    cell_font = min(28, 12 + n)
+    label_font = min(36, 16 + n)
+    title_font = min(48, 24 + n)
+    cbar_font = min(28, 14 + n // 2)
 
     # Plot
     fig, ax = plt.subplots(figsize=(1.2 * n + 2, 1.2 * n + 2))
@@ -251,12 +251,12 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                  bbox=dict(boxstyle="round,pad=0.3",
                            facecolor="#FFFFCC", edgecolor="black"))
 
-    # Significance footnote
+    # Significance footnote (fixed size)
     fig.text(0.5, 0.02,
              "* p<0.05   ** p<0.01   *** p<0.001",
-             ha="center", fontsize=max(9, 14 - n // 2), style="italic")
+             ha="center", fontsize=16, style="italic")
 
-    plt.tight_layout(rect=[0, 0.04, 1, 1])  # leave room at bottom for footnote
+    plt.tight_layout(rect=[0, 0.04, 1, 1])
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     github_path = output_path.replace(".png", "_github.png")
     plt.savefig(github_path, dpi=150, bbox_inches="tight")
