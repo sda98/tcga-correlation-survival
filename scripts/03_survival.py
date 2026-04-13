@@ -96,7 +96,6 @@ def find_optimal_cutpoint(dat, expr_col, time_col="OS.time", event_col="OS", min
     n_total = len(values)
 
     # Use percentiles of ALL values, not unique values
-    # R equivalent: surv_cutpoint minprop = 0.1
     low_bound = np.percentile(values, minprop * 100)
     high_bound = np.percentile(values, (1 - minprop) * 100)
 
@@ -256,12 +255,8 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
     ax_km.set_xlabel("")
 
     # Title
-    fig.text(
-        0.05, 0.98, title_prefix,
-        fontsize=29, fontweight="bold",
-        verticalalignment="top",
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFCC", edgecolor="black"),
-    )
+    ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
+                 loc="left", pad=15)
     
     # P-value annotation
     ax_km.text(
