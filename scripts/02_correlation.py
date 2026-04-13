@@ -219,8 +219,8 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     # Font sizes
     cell_font = min(22, 10 + n // 2)
     label_font = min(36, 16 + n)
-    title_font = min(36, 18 + n)
-    cbar_font = min(24, 14 + n)
+    title_font = min(44, 22 + n)           
+    cbar_font = min(32, 16 + n)             
     footnote_font = min(22, 12 + n)
 
     # Plot
@@ -240,9 +240,10 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     ax.set_xticklabels(genes, fontsize=label_font, rotation=45, ha="right")
     ax.set_yticklabels(genes, fontsize=label_font)
 
-    # Colorbar — thicker, vertically centered
-    cbar = plt.colorbar(im, ax=ax, shrink=0.4, aspect=8, pad=0.02,
-                        anchor=(0.0, 0.5), location="right")
+    # Colorbar — thicker, vertically centered, ticks every 0.5
+    cbar = plt.colorbar(im, ax=ax, shrink=0.45, aspect=6, pad=0.02,
+                        anchor=(0.0, 0.5), location="right",
+                        ticks=[-1, -0.5, 0, 0.5, 1])
     cbar.set_label("Spearman ρ", fontsize=cbar_font, fontweight="bold")
     cbar.ax.tick_params(labelsize=cbar_font - 2)
 
