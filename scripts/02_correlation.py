@@ -197,7 +197,7 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                 rho_matrix[i, j] = rho
                 pval_matrix[i, j] = pval
 
-    # Build cell text: "rho\nstars" (no stars on diagonal)
+    # Build cell text
     cell_text = np.empty((n, n), dtype=object)
     for i in range(n):
         for j in range(n):
@@ -216,11 +216,12 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                     stars = ""
                 cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
 
-    # Font sizes scale up with N to stay legible when figure is resized
-    cell_font = min(28, 12 + n)
+    # Font sizes
+    cell_font = min(22, 10 + n // 2)
     label_font = min(36, 16 + n)
-    title_font = min(48, 24 + n)
-    cbar_font = min(28, 14 + n // 2)
+    title_font = min(36, 18 + n)
+    cbar_font = min(24, 14 + n)
+    footnote_font = min(22, 12 + n)
 
     # Plot
     fig, ax = plt.subplots(figsize=(1.2 * n + 2, 1.2 * n + 2))
@@ -239,10 +240,10 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     ax.set_xticklabels(genes, fontsize=label_font, rotation=45, ha="right")
     ax.set_yticklabels(genes, fontsize=label_font)
 
-    # Colorbar — small, top-right
-    cbar = plt.colorbar(im, ax=ax, shrink=0.35, aspect=12, pad=0.02,
-                        anchor=(0.0, 1.0), location="right")
-    cbar.set_label("Spearman ρ", fontsize=cbar_font)
+    # Colorbar — thicker, vertically centered
+    cbar = plt.colorbar(im, ax=ax, shrink=0.4, aspect=8, pad=0.02,
+                        anchor=(0.0, 0.5), location="right")
+    cbar.set_label("Spearman ρ", fontsize=cbar_font, fontweight="bold")
     cbar.ax.tick_params(labelsize=cbar_font - 2)
 
     # Title
@@ -251,10 +252,10 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                  bbox=dict(boxstyle="round,pad=0.3",
                            facecolor="#FFFFCC", edgecolor="black"))
 
-    # Significance footnote (fixed size)
+    # Significance footnote
     fig.text(0.5, 0.02,
              "* p<0.05   ** p<0.01   *** p<0.001",
-             ha="center", fontsize=16, style="italic")
+             ha="center", fontsize=footnote_font, style="italic")
 
     plt.tight_layout(rect=[0, 0.04, 1, 1])
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
