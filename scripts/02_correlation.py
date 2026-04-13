@@ -217,11 +217,11 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                 cell_text[i, j] = f"{rho:.2f}\n{stars}" if stars else f"{rho:.2f}"
 
     # Font sizes
-    cell_font = min(26, 14 + n)
+    cell_font = min(18, 10 + n // 2)       
     label_font = min(32, 14 + n)
-    title_font = min(44, 22 + n)
-    cbar_label_font = min(32, 16 + n)
-    cbar_tick_font = min(24, 12 + n // 2 * 3 // 2)
+    title_font = min(44, 25 + n)
+    cbar_label_font = min(40, 18 + n)      
+    cbar_tick_font = min(28, 14 + n // 2 * 3 // 2)  
     footnote_font = min(24, 12 + n)
 
     # Plot
@@ -242,8 +242,8 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
                        fontstyle="italic")
     ax.set_yticklabels(genes, fontsize=label_font, fontstyle="italic")
 
-    # Colorbar — thicker, vertically centered, ticks every 0.5
-    cbar = plt.colorbar(im, ax=ax, shrink=0.45, aspect=10, pad=0.02,
+    # Colorbar
+    cbar = plt.colorbar(im, ax=ax, shrink=0.34, aspect=10, pad=0.02,
                         anchor=(0.0, 0.5), location="right",
                         ticks=[-1, -0.5, 0, 0.5, 1])
     cbar.set_label("Spearman ρ", fontsize=cbar_label_font, fontweight="bold")
