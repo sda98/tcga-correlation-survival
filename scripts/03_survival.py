@@ -255,8 +255,11 @@ def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
     ax_km.set_xlabel("")
 
     # Title
-    ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
-                 loc="left", pad=15)
+    fig.text(
+        0.05, 0.98, title_prefix,
+        fontsize=29, fontweight="bold",
+        verticalalignment="top",
+    )
     
     # P-value annotation
     ax_km.text(
