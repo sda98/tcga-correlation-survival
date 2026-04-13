@@ -250,8 +250,8 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
     cbar.ax.tick_params(labelsize=cbar_tick_font)
 
     # Title
-     ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
-                 loc="left", pad=25))
+    ax.set_title(title_suffix, fontsize=title_font, fontweight="bold",
+                 loc="left", pad=15)
 
     # Significance footnote
     fig.text(0.5, 0.02,
@@ -259,7 +259,7 @@ def make_heatmap(expr_df, genes, title_suffix, output_path):
              ha="center", fontsize=footnote_font, style="italic")
 
     plt.tight_layout(rect=[0, 0.04, 1, 1])
-    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.savefig(output_path, dpi=600, bbox_inches="tight")
     github_path = output_path.replace(".png", "_github.png")
     plt.savefig(github_path, dpi=150, bbox_inches="tight")
     plt.close()
