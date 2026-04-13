@@ -2,9 +2,9 @@
 """
 03_survival.py
 
-Kaplan-Meier survival analysis for two-gene expression groups.
-Splits patients into High/Low for each gene, creates 4 combo groups,
-and plots KM curves with risk tables.
+Kaplan-Meier survival analysis for multi-gene expression groups.
+Splits patients into High/Low for each gene, creates 2^N combo groups,
+and plots KM curves with risk tables. Supports 2 or 3 genes.
 """
 
 import os
@@ -223,7 +223,7 @@ def make_km_plot(dat, genes, title_prefix, output_path,
         ax_km.step(
             times_plot, surv_plot,
             where="post",
-            color=GROUP_COLORS[group],
+            color=group_colors[group],
             linewidth=2.5,
             label=group,
             zorder=2,
@@ -239,7 +239,7 @@ def make_km_plot(dat, genes, title_prefix, output_path,
                 surv_at_censor = surv_plot[idx]
                 ax_km.plot(
                     ct, surv_at_censor, "|",
-                    color=GROUP_COLORS[group],
+                    color=group_colors[group],
                     markersize=8,
                     markeredgewidth=1.5,
                     zorder=3,
@@ -271,7 +271,7 @@ def make_km_plot(dat, genes, title_prefix, output_path,
 
     # Legend
     legend_elements = [
-        Line2D([0], [0], color=GROUP_COLORS[g], linewidth=2.5, label=g)
+        Line2D([0], [0], color=group_colors[g], linewidth=2.5, label=g)
         for g in groups
         if (dat["Combo"] == g).any()
     ]
@@ -315,7 +315,7 @@ def make_km_plot(dat, genes, title_prefix, output_path,
             -0.06, i, group,
             ha="right", va="center",
             fontsize=17, fontweight="bold",
-            color=GROUP_COLORS[group],
+            color=group_colors[group],
             transform=ax_risk.get_yaxis_transform(),
         )
 
