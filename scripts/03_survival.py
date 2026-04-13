@@ -277,7 +277,7 @@ def make_km_plot(dat, genes, title_prefix, output_path,
     ]
     leg = ax_km.legend(
         handles=legend_elements,
-        title=f"$\\it{{{gene1}/{gene2}}}$",
+        title=f"$\\it{{{'/'.join(genes)}}}$",
         loc="upper right",
         fontsize=18,
         title_fontsize=19,
@@ -361,14 +361,12 @@ def make_km_plot(dat, genes, title_prefix, output_path,
 # ============================================================
 
 def run_2gene_survival(genes):
-    GENE1, GENE2 = genes[0], genes[1]
-
     print("=== Pan-Cancer Survival ===")
-    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2)
+    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes)
     print(f"  Merged samples: {len(dat_pan)}")
-    dat_pan = assign_groups(dat_pan, GENE1, GENE2, split=config["split_method"])
+    dat_pan = assign_groups(dat_pan, genes)
     make_km_plot(
-        dat_pan, GENE1, GENE2,
+        dat_pan, genes,
         title_prefix="Pan-Cancer",
         output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
         xlim_days=config["pancancer_xlim_days"],
@@ -377,13 +375,13 @@ def run_2gene_survival(genes):
 
     print("\n=== AML Survival ===")
     dat_aml = load_and_merge(
-        EXPRESSION_FILE, SURVIVAL_FILE, GENE1, GENE2,
+        EXPRESSION_FILE, SURVIVAL_FILE, genes,
         sample_filter=AML_PREFIX,
     )
     print(f"  Merged AML samples: {len(dat_aml)}")
-    dat_aml = assign_groups(dat_aml, GENE1, GENE2, split=config["split_method"])
+    dat_aml = assign_groups(dat_aml, genes)
     make_km_plot(
-        dat_aml, GENE1, GENE2,
+        dat_aml, genes,
         title_prefix="Acute Myeloid Leukemia",
         output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
         xlim_days=config["aml_xlim_days"],
@@ -392,9 +390,32 @@ def run_2gene_survival(genes):
 
 
 def run_3gene_survival(genes):
-    # TODO: Phase 3 step 2 — 8-group KM analysis
-    print(f"3-gene survival analysis not yet implemented (genes: {genes})")
-    sys.exit(1)
+    print("=== Pan-Cancer Survival (3-gene interaction) ===")
+    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes)
+    print(f"  Merged samples: {len(dat_pan)}")
+    dat_pan = assign_groups(dat_pan, genes)
+    make_km_plot(
+        dat_pan, genes,
+        title_prefix="Pan-Cancer",
+        output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
+        xlim_days=config["pancancer_xlim_days"],
+        break_time=config["pancancer_break_time"],
+    )
+
+    print("\n=== AML Survival (3-gene interaction) ===")
+    dat_aml = load_and_merge(
+        EXPRESSION_FILE, SURVIVAL_FILE, genes,
+        sample_filter=AML_PREFIX,
+    )
+    print(f"  Merged AML samples: {len(dat_aml)}")
+    dat_aml = assign_groups(dat_aml, genes)
+    make_km_plot(
+        dat_aml, genes,
+        title_prefix="Acute Myeloid Leukemia",
+        output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
+        xlim_days=config["aml_xlim_days"],
+        break_time=config["aml_break_time"],
+    )
 
 
 def run_multigene_cox(genes):
