@@ -30,18 +30,26 @@ EXPRESSION_FILE = os.path.join("results", "expression_clean.tsv")
 SURVIVAL_FILE = os.path.join("data", "TCGA_master_clinical_survival.csv")
 RESULTS_DIR = "results"
 
-# Colors 
-GROUP_COLORS = {
-    "Low/Low":   "#1b9e77",
-    "Low/High":  "#d95f02",
-    "High/Low":  "#7570b3",
-    "High/High": "#e7298a",
-}
-
-
 # ============================================================
 # Helper functions
 # ============================================================
+
+def get_group_colors(groups):
+    """
+    Generate a color dict for N groups using matplotlib's Dark2 palette.
+    Supports up to 8 groups (2^3).
+    """
+    cmap = plt.get_cmap("Dark2")
+    return {group: cmap(i % 8) for i, group in enumerate(groups)}
+
+
+def generate_all_groups(n_genes):
+    """
+    Return all 2^n possible Low/High combinations as strings.
+    E.g., n=2 → ['Low/Low', 'Low/High', 'High/Low', 'High/High']
+    """
+    from itertools import product
+    return ["/".join(combo) for combo in product(["Low", "High"], repeat=n_genes)]
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -54,36 +62,26 @@ with open("config.yaml") as f:
 
 AML_PREFIX = config["aml_prefix"]
 
-def load_and_merge(expression_file, survival_file, gene1, gene2, sample_filter=None):
+def load_and_merge(expression_file, survival_file, genes, sample_filter=None):
     """
     Load expression and survival data, merge them by Sample_ID.
+    Returns a DataFrame with columns: Sample_ID, OS.time, OS, expr1, expr2, ..., exprN
     """
-    # Load expression for the two genes
     tpm = pd.read_csv(expression_file, sep="\t", index_col=0)
-    expr = tpm.loc[[gene1, gene2]].T
-    expr.columns = ["expr1", "expr2"]
+    expr = tpm.loc[genes].T
+    expr.columns = [f"expr{i+1}" for i in range(len(genes))]
     expr.index.name = "Sample_ID"
     expr = expr.reset_index()
 
-    # Load survival data
     surv = pd.read_csv(survival_file)
-
-    # Filter to the cancer of interest if requested
     if sample_filter:
         surv = surv[surv["Sample_ID"].str.startswith(sample_filter)]
-
-    # Keep only rows with valid OS data
     surv = surv[["Sample_ID", "OS.time", "OS"]].dropna()
     surv = surv[surv["OS.time"] > 0]
-
-    # Ensure OS is integer 0/1
     surv["OS"] = surv["OS"].astype(int)
 
-    # Merge expression with survival by Sample_ID
     dat = pd.merge(surv, expr, on="Sample_ID", how="inner")
-
     return dat
-
 
 def find_optimal_cutpoint(dat, expr_col, time_col="OS.time", event_col="OS", minprop=0.1):
     """
@@ -128,32 +126,34 @@ def find_optimal_cutpoint(dat, expr_col, time_col="OS.time", event_col="OS", min
     return best_cut
 
 
-def assign_groups(dat, gene1, gene2, split=config["split_method"]):
+def assign_groups(dat, genes, split=None):
     """
     Split patients into High/Low for each gene and create combo groups.
+    Works for any number of genes.
     """
+    if split is None:
+        split = config["split_method"]
 
-    if split == "optimal":
-        cut1 = find_optimal_cutpoint(dat, "expr1")
-        cut2 = find_optimal_cutpoint(dat, "expr2")
-        print(f"  Optimal cutpoints: {gene1} = {cut1:.3f}, {gene2} = {cut2:.3f}")
-    else:
-        cut1 = dat["expr1"].median()
-        cut2 = dat["expr2"].median()
-        print(f"  Median cutpoints: {gene1} = {cut1:.3f}, {gene2} = {cut2:.3f}")
+    cuts = []
+    for i, gene in enumerate(genes):
+        expr_col = f"expr{i+1}"
+        if split == "optimal":
+            cut = find_optimal_cutpoint(dat, expr_col)
+        else:
+            cut = dat[expr_col].median()
+        cuts.append(cut)
+        print(f"  {'Optimal' if split == 'optimal' else 'Median'} cutpoint: {gene} = {cut:.3f}")
 
     # Assign High/Low per gene
-    dat["G1"] = np.where(dat["expr1"] > cut1, "High", "Low")
-    dat["G2"] = np.where(dat["expr2"] > cut2, "High", "Low")
+    for i in range(len(genes)):
+        dat[f"G{i+1}"] = np.where(dat[f"expr{i+1}"] > cuts[i], "High", "Low")
 
-    # Create combo group
-    dat["Combo"] = dat["G1"] + "/" + dat["G2"]
+    # Create combo group: "High/Low/High" etc.
+    g_cols = [f"G{i+1}" for i in range(len(genes))]
+    dat["Combo"] = dat[g_cols].agg("/".join, axis=1)
 
-    # Print group sizes
     print(f"  Group sizes: {dat['Combo'].value_counts().to_dict()}")
-
     return dat
-
 
 def compute_logrank_pvalue(dat):
     """
@@ -176,7 +176,7 @@ def format_pvalue(pval):
         return f"p = {pval:.4f}"
 
 
-def make_km_plot(dat, gene1, gene2, title_prefix, output_path,
+def make_km_plot(dat, genes, title_prefix, output_path,
                  xlim_days=365, break_time=73):
     """
     Create Kaplan-Meier plot with risk table
