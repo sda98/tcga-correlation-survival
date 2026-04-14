@@ -460,11 +460,11 @@ def make_forest_plot(df, title_prefix, output_path):
     fig, ax = plt.subplots(figsize=(8, fig_height))
 
     # Dynamic font sizing scaled to N genes
-    gene_label_font = min(28, 14 + n)
-    axis_tick_font = min(24, 12 + n)
-    axis_title_font = min(28, 16 + n)
-    plot_title_font = min(36, 20 + n)
-    annot_font = min(16, 8 + n // 2)
+    gene_label_font = min(20, 11 + n // 2)
+    axis_tick_font = min(22, 12 + n // 2)
+    axis_title_font = min(18, 12 + n // 3)
+    plot_title_font = min(22, 14 + n // 3)
+    annot_font = min(10, 6 + n // 4)
 
     y_positions = np.arange(n)
 
@@ -505,9 +505,9 @@ def make_forest_plot(df, title_prefix, output_path):
         x_anchor = row["HR_upper_95"] * 1.08
         p_text = f"$P$ = {sci_notation(row['p_value'])}"
         q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
-        ax.text(x_anchor, y + 0.18, p_text,
+        ax.text(x_anchor, y + 0.10, p_text,
                 va="center", ha="left", fontsize=annot_font)
-        ax.text(x_anchor, y - 0.18, q_text,
+        ax.text(x_anchor, y - 0.10, q_text,
                 va="center", ha="left", fontsize=annot_font)
 
     # X-axis limits: data area only, with a bit of room for the footnotes
@@ -515,7 +515,7 @@ def make_forest_plot(df, title_prefix, output_path):
                 right=max(4.5, df_plot["HR_upper_95"].max() * 2.5))
 
     # Title
-    fig.text(0.05, 0.95, title_prefix,
+    fig.text(0.05, 0.98, title_prefix,
              fontsize=plot_title_font, fontweight="bold",
              verticalalignment="top")
 
@@ -523,7 +523,7 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     github_path = output_path.replace(".png", "_github.png")
     plt.savefig(github_path, dpi=150, bbox_inches="tight")
