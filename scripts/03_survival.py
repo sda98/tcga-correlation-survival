@@ -470,6 +470,7 @@ def make_forest_plot(df, title_prefix, output_path):
     # Gene labels on y-axis (italic)
     ax.set_yticks(y_positions)
     ax.set_yticklabels(df_plot["gene"], fontsize=14, fontstyle="italic")
+    ax.set_ylim(-0.6, n - 0.4)
 
     # Log-scale x-axis with explicit tick marks
     from matplotlib.ticker import FixedLocator, FixedFormatter
