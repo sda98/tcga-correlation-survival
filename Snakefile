@@ -1,7 +1,5 @@
 configfile: "config.yaml"
 
-latency-wait: 30
-
 if "genes" not in config:
     raise ValueError(
         "Specify genes: snakemake --cores 1 --config genes=GENE,GENE"
