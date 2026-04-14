@@ -18,6 +18,8 @@ import matplotlib
 from matplotlib.lines import Line2D
 import argparse
 import yaml
+from lifelines import CoxPHFitter
+from statsmodels.stats.multitest import multipletests
 
 matplotlib.use("Agg")
 
@@ -377,6 +379,75 @@ def make_km_plot(dat, genes, title_prefix, output_path,
     plt.close()
     print(f"  Saved plot: {output_path}")
 
+def make_forest_plot(df, title_prefix, output_path):
+    """
+    Horizontal forest plot of HRs with 95% CI error bars.
+    Genes sorted by q-value (most significant at top).
+    HR axis on log scale.
+    """
+    df_plot = df.dropna(subset=["HR"]).copy()
+    if len(df_plot) == 0:
+        print(f"  No valid Cox results to plot for {title_prefix}.")
+        return
+
+    # Sort for display: most significant (smallest q) at top
+    df_plot = df_plot.sort_values("q_value", ascending=True).reset_index(drop=True)
+    df_plot = df_plot.iloc[::-1].reset_index(drop=True)  # reverse so smallest q is at top of plot
+
+    n = len(df_plot)
+    fig_height = max(4, 0.6 * n + 2)
+    fig, ax = plt.subplots(figsize=(9, fig_height))
+
+    y_positions = np.arange(n)
+
+    # Error bars (95% CI)
+    for y, (_, row) in zip(y_positions, df_plot.iterrows()):
+        ax.plot([row["HR_lower_95"], row["HR_upper_95"]], [y, y],
+                color="black", linewidth=1.5, zorder=2)
+        ax.plot(row["HR"], y, "s", color="#4477AA",
+                markersize=10, markeredgecolor="black", zorder=3)
+
+    # Reference line at HR=1
+    ax.axvline(1, color="gray", linestyle="--", linewidth=1, zorder=1)
+
+    # Gene labels on y-axis (italic)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(df_plot["gene"], fontsize=14, fontstyle="italic")
+
+    # Log-scale x-axis
+    ax.set_xscale("log")
+    ax.set_xlabel("Hazard Ratio (95% CI)", fontsize=14, fontweight="bold")
+    ax.tick_params(labelsize=12)
+
+    # Right-side annotations: HR (CI) and q-value
+    x_max = df_plot["HR_upper_95"].max()
+    annot_x = x_max * 1.3
+    for y, (_, row) in zip(y_positions, df_plot.iterrows()):
+        hr_text = f"{row['HR']:.2f} ({row['HR_lower_95']:.2f}–{row['HR_upper_95']:.2f})"
+        q_text = f"q = {row['q_value']:.3g}" if pd.notna(row["q_value"]) else "q = NA"
+        ax.text(annot_x, y, f"{hr_text}   {q_text}",
+                va="center", fontsize=11, family="monospace")
+
+    # Extend x-axis to fit annotations
+    ax.set_xlim(left=min(df_plot["HR_lower_95"].min() * 0.8, 0.5),
+                right=annot_x * 3)
+
+    # Title
+    fig.text(0.05, 0.95, title_prefix,
+             fontsize=18, fontweight="bold",
+             verticalalignment="top")
+
+    # Clean spines
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    github_path = output_path.replace(".png", "_github.png")
+    plt.savefig(github_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved forest plot: {output_path}")
+
 # ============================================================
 # Main analysis
 # ============================================================
@@ -410,9 +481,24 @@ def run_2gene_survival(genes):
     )
 
 def run_multigene_cox(genes):
-    # TODO: Phase 3 step 3 — univariate Cox + BH-FDR
-    print(f"Cox+FDR analysis not yet implemented (genes: {genes})")
-    sys.exit(1)
+    print(f"=== Pan-Cancer Cox Analysis ({len(genes)} genes) ===")
+    dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes)
+    print(f"  Merged samples: {len(dat_pan)}")
+    df_pan = run_cox_fdr(dat_pan, genes)
+    df_pan.to_csv(os.path.join(RESULTS_DIR, "cox_pancancer.csv"), index=False)
+    print(f"  Saved table: results/cox_pancancer.csv")
+    make_forest_plot(df_pan, "Pan-Cancer",
+                     os.path.join(RESULTS_DIR, "cox_forest_pancancer.png"))
+
+    print(f"\n=== AML Cox Analysis ({len(genes)} genes) ===")
+    dat_aml = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes,
+                             sample_filter=AML_PREFIX)
+    print(f"  Merged AML samples: {len(dat_aml)}")
+    df_aml = run_cox_fdr(dat_aml, genes)
+    df_aml.to_csv(os.path.join(RESULTS_DIR, "cox_aml.csv"), index=False)
+    print(f"  Saved table: results/cox_aml.csv")
+    make_forest_plot(df_aml, "Acute Myeloid Leukemia",
+                     os.path.join(RESULTS_DIR, "cox_forest_aml.png"))
 
 
 def main():
