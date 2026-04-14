@@ -11,8 +11,7 @@ rule all:
     input:
         "results/expression_clean.tsv",
         "results/correlation_done.txt",
-        "results/survival_pancancer.png",
-        "results/survival_aml.png"
+        "results/survival_done.txt"
 
 rule data_prep:
     input:
@@ -42,10 +41,7 @@ rule survival:
         expression="results/expression_clean.tsv",
         clinical=config["clinical_file"]
     output:
-        pancancer="results/survival_pancancer.png",
-        pancancer_gh="results/survival_pancancer_github.png",
-        aml="results/survival_aml.png",
-        aml_gh="results/survival_aml_github.png"
+        "results/survival_done.txt"
     log:
         "logs/survival.log"
     shell:
