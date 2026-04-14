@@ -453,7 +453,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     n = len(df_plot)
     fig_height = max(4, 0.6 * n + 2)
-    fig, ax = plt.subplots(figsize=(14, fig_height)
+    fig, ax = plt.subplots(figsize=(14, fig_height))
 
     y_positions = np.arange(n)
 
