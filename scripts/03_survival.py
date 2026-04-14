@@ -379,6 +379,59 @@ def make_km_plot(dat, genes, title_prefix, output_path,
     plt.close()
     print(f"  Saved plot: {output_path}")
 
+def run_cox_fdr(dat, genes):
+    """
+    Univariate Cox regression per gene with BH-FDR correction.
+    Returns a DataFrame sorted by q-value.
+    """
+    # Check event count (Peduzzi 1995 — need ≥10 events for Cox to be reliable)
+    n_events = int(dat["OS"].sum())
+    if n_events < 10:
+        print(f"  ⚠ WARNING: Only {n_events} events in this cohort (<10).")
+        print(f"  Cox regression results may be unreliable.")
+
+    results = []
+    for i, gene in enumerate(genes):
+        expr_col = f"expr{i+1}"
+        cox_data = dat[["OS.time", "OS", expr_col]].rename(columns={expr_col: "expression"})
+
+        cph = CoxPHFitter()
+        try:
+            cph.fit(cox_data, duration_col="OS.time", event_col="OS")
+            summary = cph.summary.loc["expression"]
+            results.append({
+                "gene": gene,
+                "HR": summary["exp(coef)"],
+                "HR_lower_95": summary["exp(coef) lower 95%"],
+                "HR_upper_95": summary["exp(coef) upper 95%"],
+                "p_value": summary["p"],
+                "n_events": n_events,
+            })
+        except Exception as e:
+            print(f"  ⚠ Cox fit failed for {gene}: {e}")
+            results.append({
+                "gene": gene,
+                "HR": np.nan,
+                "HR_lower_95": np.nan,
+                "HR_upper_95": np.nan,
+                "p_value": np.nan,
+                "n_events": n_events,
+            })
+
+    df = pd.DataFrame(results)
+
+    # BH-FDR correction on non-NaN p-values
+    valid = df["p_value"].notna()
+    if valid.sum() > 0:
+        _, qvals, _, _ = multipletests(df.loc[valid, "p_value"], method="fdr_bh")
+        df.loc[valid, "q_value"] = qvals
+    else:
+        df["q_value"] = np.nan
+
+    # Sort by q-value ascending (most significant first)
+    df = df.sort_values("q_value", na_position="last").reset_index(drop=True)
+    return df
+
 def make_forest_plot(df, title_prefix, output_path):
     """
     Horizontal forest plot of HRs with 95% CI error bars.
@@ -414,8 +467,13 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.set_yticks(y_positions)
     ax.set_yticklabels(df_plot["gene"], fontsize=14, fontstyle="italic")
 
-    # Log-scale x-axis
+    # Log-scale x-axis with explicit tick marks
+    from matplotlib.ticker import FixedLocator, FixedFormatter
     ax.set_xscale("log")
+    tick_values = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
+    ax.xaxis.set_major_locator(FixedLocator(tick_values))
+    ax.xaxis.set_major_formatter(FixedFormatter([str(t) for t in tick_values]))
+    ax.xaxis.set_minor_locator(plt.NullLocator())
     ax.set_xlabel("Hazard Ratio (95% CI)", fontsize=14, fontweight="bold")
     ax.tick_params(labelsize=12)
 
@@ -423,9 +481,10 @@ def make_forest_plot(df, title_prefix, output_path):
     x_max = df_plot["HR_upper_95"].max()
     annot_x = x_max * 1.3
     for y, (_, row) in zip(y_positions, df_plot.iterrows()):
-        hr_text = f"{row['HR']:.2f} ({row['HR_lower_95']:.2f}–{row['HR_upper_95']:.2f})"
+        hr_text = f"HR = {row['HR']:.2f} ({row['HR_lower_95']:.2f}–{row['HR_upper_95']:.2f})"
+        p_text = f"p = {row['p_value']:.3g}" if pd.notna(row["p_value"]) else "p = NA"
         q_text = f"q = {row['q_value']:.3g}" if pd.notna(row["q_value"]) else "q = NA"
-        ax.text(annot_x, y, f"{hr_text}   {q_text}",
+        ax.text(annot_x, y, f"{hr_text}   {p_text}   {q_text}",
                 va="center", fontsize=11, family="monospace")
 
     # Extend x-axis to fit annotations
@@ -447,6 +506,147 @@ def make_forest_plot(df, title_prefix, output_path):
     plt.savefig(github_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"  Saved forest plot: {output_path}")
+
+def run_risk_score_km(dat, genes, title_prefix, output_path,
+                      xlim_days=365, break_time=73):
+    """
+    Multivariable Cox fit → risk score per patient → median split → KM plot.
+    Following the approach used in Fan et al. 2024 (Nature Mach Intell).
+    """
+    expr_cols = [f"expr{i+1}" for i in range(len(genes))]
+    cox_data = dat[["OS.time", "OS"] + expr_cols].copy()
+
+    cph = CoxPHFitter()
+    try:
+        cph.fit(cox_data, duration_col="OS.time", event_col="OS")
+    except Exception as e:
+        print(f"  ⚠ Joint Cox fit failed: {e}")
+        return
+
+    # Compute risk score: β^T X
+    coefs = cph.params_.values
+    expr_matrix = dat[expr_cols].values
+    risk_scores = expr_matrix @ coefs
+
+    # Median split
+    median_score = np.median(risk_scores)
+    dat = dat.copy()
+    dat["risk_group"] = np.where(risk_scores > median_score, "High", "Low")
+    dat["Combo"] = dat["risk_group"]  # reuse existing KM plotting conventions
+
+    # Event check
+    group_events = dat.groupby("Combo")["OS"].sum()
+    print(f"  Risk group events: {group_events.to_dict()}")
+
+    # Reuse make_km_plot with 2 groups labeled High/Low
+    # Temporarily treat as 1-gene display for a single-row risk header
+    make_km_plot_risk(dat, genes, title_prefix, output_path,
+                     xlim_days=xlim_days, break_time=break_time)
+
+
+def make_km_plot_risk(dat, genes, title_prefix, output_path,
+                      xlim_days=365, break_time=73):
+    """
+    KM plot for High/Low risk groups (2 groups only) from joint-Cox risk score.
+    """
+    groups = ["Low", "High"]
+    cmap = plt.get_cmap("Dark2")
+    group_colors = {"Low": cmap(0), "High": cmap(1)}
+
+    pval = compute_logrank_pvalue(dat)
+    pval_str = format_pvalue(pval)
+    print(f"  Risk-score log-rank {pval_str}")
+
+    fig, (ax_km, ax_risk) = plt.subplots(
+        2, 1, figsize=(10, 11),
+        gridspec_kw={"height_ratios": [3.5, 1]},
+    )
+
+    for group in groups:
+        group_data = dat[dat["Combo"] == group]
+        if len(group_data) == 0:
+            continue
+        kmf = KaplanMeierFitter()
+        kmf.fit(group_data["OS.time"], event_observed=group_data["OS"], label=group)
+        times_plot = kmf.survival_function_.index.values
+        surv_plot = kmf.survival_function_.iloc[:, 0].values
+        mask_time = times_plot <= xlim_days
+        times_plot = times_plot[mask_time]
+        surv_plot = surv_plot[mask_time]
+        ax_km.step(times_plot, surv_plot, where="post",
+                   color=group_colors[group], linewidth=2.5, label=group, zorder=2)
+        censor_times = group_data.loc[group_data["OS"] == 0, "OS.time"].values
+        censor_times = censor_times[censor_times <= xlim_days]
+        for ct in censor_times:
+            idx = np.searchsorted(times_plot, ct, side="right") - 1
+            if 0 <= idx < len(surv_plot):
+                ax_km.plot(ct, surv_plot[idx], "|",
+                           color=group_colors[group], markersize=8,
+                           markeredgewidth=1.5, zorder=3)
+
+    ax_km.set_ylim(0, 1.02)
+    ax_km.set_xlim(0, xlim_days)
+    ax_km.set_ylabel("Percent survival", fontsize=25, fontweight="bold")
+    ax_km.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+    ax_km.set_yticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=25)
+    ax_km.set_xticks(np.arange(0, xlim_days + 1, break_time))
+    ax_km.set_xticklabels(ax_km.get_xticks().astype(int), fontsize=25)
+    ax_km.set_xlabel("")
+
+    fig.text(0.05, 0.94, title_prefix, fontsize=32, fontweight="bold",
+             verticalalignment="top")
+    ax_km.text(xlim_days * 0.25, 0.92,
+               f"Log-rank P {'< 0.0001' if pval < 0.0001 else '= ' + f'{pval:.4f}'}",
+               fontsize=18, fontweight="bold")
+
+    legend_elements = [
+        Line2D([0], [0], color=group_colors[g], linewidth=2.5, label=f"{g} risk")
+        for g in groups
+    ]
+    leg = ax_km.legend(handles=legend_elements,
+                       title=f"Risk score ({len(genes)} genes)",
+                       loc="upper right", fontsize=18, title_fontsize=19,
+                       framealpha=0.9, edgecolor="none")
+
+    for spine in ax_km.spines.values():
+        spine.set_edgecolor("black")
+        spine.set_linewidth(1)
+
+    time_points = np.arange(0, xlim_days + 1, break_time)
+    ax_risk.text(-0.02, 1.25, "Number at risk", transform=ax_risk.transAxes,
+                 fontsize=26, fontweight="bold", verticalalignment="top")
+
+    for i, group in enumerate(groups):
+        group_data = dat[dat["Combo"] == group]
+        if len(group_data) == 0:
+            continue
+        ax_risk.text(-0.06, i, group, ha="right", va="center",
+                     fontsize=17, fontweight="bold",
+                     color=group_colors[group],
+                     transform=ax_risk.get_yaxis_transform())
+        for t in time_points:
+            n = (group_data["OS.time"] >= t).sum()
+            ax_risk.text(t, i, str(n), ha="center", va="center",
+                         fontsize=18, fontweight="bold", color="black")
+
+    ax_risk.set_ylim(-0.5, len(groups) - 0.5)
+    ax_risk.set_xlim(0, xlim_days)
+    ax_risk.set_yticks(range(len(groups)))
+    ax_risk.set_yticklabels([""] * len(groups))
+    ax_risk.set_xlabel("Time (days)", fontsize=24, fontweight="bold", labelpad=23)
+    ax_risk.set_xticks(time_points)
+    ax_risk.tick_params(labelsize=25, colors="black", width=1.5, length=6)
+    ax_risk.spines["top"].set_visible(False)
+    ax_risk.spines["right"].set_visible(False)
+    ax_risk.spines["left"].set_visible(False)
+    ax_risk.tick_params(left=False, bottom=False)
+
+    plt.subplots_adjust(hspace=0.30)
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    github_path = output_path.replace(".png", "_github.png")
+    plt.savefig(github_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"  Saved KM plot: {output_path}")
 
 # ============================================================
 # Main analysis
@@ -489,6 +689,13 @@ def run_multigene_cox(genes):
     print(f"  Saved table: results/cox_pancancer.csv")
     make_forest_plot(df_pan, "Pan-Cancer",
                      os.path.join(RESULTS_DIR, "cox_forest_pancancer.png"))
+    run_risk_score_km(
+        dat_pan, genes,
+        title_prefix="Pan-Cancer (Risk Score)",
+        output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
+        xlim_days=config["pancancer_xlim_days"],
+        break_time=config["pancancer_break_time"],
+    )
 
     print(f"\n=== AML Cox Analysis ({len(genes)} genes) ===")
     dat_aml = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes,
@@ -499,6 +706,13 @@ def run_multigene_cox(genes):
     print(f"  Saved table: results/cox_aml.csv")
     make_forest_plot(df_aml, "Acute Myeloid Leukemia",
                      os.path.join(RESULTS_DIR, "cox_forest_aml.png"))
+    run_risk_score_km(
+        dat_aml, genes,
+        title_prefix="AML (Risk Score)",
+        output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
+        xlim_days=config["aml_xlim_days"],
+        break_time=config["aml_break_time"],
+    )
 
 
 def main():
