@@ -453,7 +453,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     n = len(df_plot)
     fig_height = max(4, 0.6 * n + 2)
-    fig, ax = plt.subplots(figsize=(10, fig_height))
+    fig, ax = plt.subplots(figsize=(8, fig_height))
 
     y_positions = np.arange(n)
 
@@ -478,7 +478,7 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.xaxis.set_major_locator(FixedLocator(tick_values))
     ax.xaxis.set_major_formatter(FixedFormatter([str(t) for t in tick_values]))
     ax.xaxis.set_minor_locator(plt.NullLocator())
-    ax.set_xlabel("Hazard Ratio (95% CI)", fontsize=14, fontweight="bold")
+    ax.set_xlabel("Hazard Ratio", fontsize=14, fontweight="bold")
     ax.tick_params(labelsize=12)
 
     # Per-bar annotations: P-value and P_adj beside each HR point
@@ -491,12 +491,12 @@ def make_forest_plot(df, title_prefix, output_path):
     for y, (_, row) in zip(y_positions, df_plot.iterrows()):
         # Position annotations just to the right of the upper CI tip
         x_anchor = row["HR_upper_95"] * 1.08
-        p_text = f"P-value = {sci_notation(row['p_value'])}"
+        p_text = f"$P$ = {sci_notation(row['p_value'])}"
         q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
-        ax.text(x_anchor, y + 0.12, p_text,
-                va="center", ha="left", fontsize=9)
-        ax.text(x_anchor, y - 0.18, q_text,
-                va="center", ha="left", fontsize=9)
+        ax.text(x_anchor, y + 0.08, p_text,
+                va="center", ha="left", fontsize=7)
+        ax.text(x_anchor, y - 0.08, q_text,
+                va="center", ha="left", fontsize=7)
 
     # X-axis limits: data area only, with a bit of room for the footnotes
     ax.set_xlim(left=min(df_plot["HR_lower_95"].min() * 0.8, 0.5),
