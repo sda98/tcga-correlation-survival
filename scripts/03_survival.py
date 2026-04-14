@@ -401,6 +401,8 @@ def run_cox_fdr(dat, genes):
             summary = cph.summary.loc["expression"]
             results.append({
                 "gene": gene,
+                "beta": summary["coef"],
+                "SE": summary["se(coef)"],
                 "HR": summary["exp(coef)"],
                 "HR_lower_95": summary["exp(coef) lower 95%"],
                 "HR_upper_95": summary["exp(coef) upper 95%"],
@@ -411,6 +413,8 @@ def run_cox_fdr(dat, genes):
             print(f"  ⚠ Cox fit failed for {gene}: {e}")
             results.append({
                 "gene": gene,
+                "beta": np.nan,
+                "SE": np.nan,
                 "HR": np.nan,
                 "HR_lower_95": np.nan,
                 "HR_upper_95": np.nan,
@@ -449,7 +453,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     n = len(df_plot)
     fig_height = max(4, 0.6 * n + 2)
-    fig, ax = plt.subplots(figsize=(9, fig_height))
+    fig, ax = plt.subplots(figsize=(14, fig_height)
 
     y_positions = np.arange(n)
 
@@ -483,9 +487,9 @@ def make_forest_plot(df, title_prefix, output_path):
 
     # Column x-positions in axes fraction (0 = left edge, 1 = right edge of plot box)
     col_hr_x = 1.04
-    col_ci_x = 1.14
-    col_p_x = 1.34
-    col_q_x = 1.52
+    col_ci_x = 1.18
+    col_p_x = 1.42
+    col_q_x = 1.68
 
     # Column headers above the top row
     ax.text(col_hr_x, header_y, "HR",
