@@ -460,11 +460,11 @@ def make_forest_plot(df, title_prefix, output_path):
     fig, ax = plt.subplots(figsize=(8, fig_height))
 
     # Dynamic font sizing scaled to N genes
-    gene_label_font = min(24, 13 + n // 2)
-    axis_tick_font = min(26, 14 + n // 2)
+    gene_label_font = min(18, 13 + n // 4)
+    axis_tick_font = min(32, 14 + n)
     axis_title_font = min(22, 14 + n // 3)
     plot_title_font = min(28, 17 + n // 3)
-    annot_font = min(12, 7 + n // 4)
+    annot_font = min(10, 7 + n // 6)
 
     y_positions = np.arange(n)
 
@@ -505,9 +505,9 @@ def make_forest_plot(df, title_prefix, output_path):
         x_anchor = row["HR_upper_95"] * 1.08
         p_text = f"$P$ = {sci_notation(row['p_value'])}"
         q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
-        ax.text(x_anchor, y + 0.10, p_text,
+        ax.text(x_anchor, y + 0.14, p_text,
                 va="center", ha="left", fontsize=annot_font)
-        ax.text(x_anchor, y - 0.10, q_text,
+        ax.text(x_anchor, y - 0.14, q_text,
                 va="center", ha="left", fontsize=annot_font)
 
     # X-axis limits: data area only, with a bit of room for the footnotes
