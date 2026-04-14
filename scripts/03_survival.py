@@ -477,25 +477,32 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.set_xlabel("Hazard Ratio (95% CI)", fontsize=14, fontweight="bold")
     ax.tick_params(labelsize=12)
 
-    # Right-side annotations with column headers
-    x_max = df_plot["HR_upper_95"].max()
-    annot_x = x_max * 1.3
+    # Annotations placed to the right of the plot box in axes coordinates
+    # (x > 1.0 means outside the right edge of the data area)
+    header_y = n - 0.4
 
-    # Define column x-offsets (in log units, roughly)
-    col_hr_x = annot_x
-    col_ci_x = annot_x * 2.0
-    col_p_x = annot_x * 4.2
-    col_q_x = annot_x * 6.0
+    # Column x-positions in axes fraction (0 = left edge, 1 = right edge of plot box)
+    col_hr_x = 1.04
+    col_ci_x = 1.14
+    col_p_x = 1.34
+    col_q_x = 1.52
 
     # Column headers above the top row
-    header_y = n - 0.4
-    ax.text(col_hr_x, header_y, "HR", va="bottom", ha="left",
+    ax.text(col_hr_x, header_y, "HR",
+            transform=ax.get_yaxis_transform(),
+            va="bottom", ha="left",
             fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_ci_x, header_y, "95% CI", va="bottom", ha="left",
+    ax.text(col_ci_x, header_y, "95% CI",
+            transform=ax.get_yaxis_transform(),
+            va="bottom", ha="left",
             fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_p_x, header_y, "p", va="bottom", ha="left",
+    ax.text(col_p_x, header_y, "P-value (Wald)",
+            transform=ax.get_yaxis_transform(),
+            va="bottom", ha="left",
             fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_q_x, header_y, "q", va="bottom", ha="left",
+    ax.text(col_q_x, header_y, "P_adj (B-H)",
+            transform=ax.get_yaxis_transform(),
+            va="bottom", ha="left",
             fontsize=12, fontweight="bold", family="monospace")
 
     # Data rows
@@ -504,18 +511,26 @@ def make_forest_plot(df, title_prefix, output_path):
         ci_text = f"({row['HR_lower_95']:.2f}–{row['HR_upper_95']:.2f})"
         p_text = f"{row['p_value']:.3g}" if pd.notna(row["p_value"]) else "NA"
         q_text = f"{row['q_value']:.3g}" if pd.notna(row["q_value"]) else "NA"
-        ax.text(col_hr_x, y, hr_text, va="center", ha="left",
+        ax.text(col_hr_x, y, hr_text,
+                transform=ax.get_yaxis_transform(),
+                va="center", ha="left",
                 fontsize=11, family="monospace")
-        ax.text(col_ci_x, y, ci_text, va="center", ha="left",
+        ax.text(col_ci_x, y, ci_text,
+                transform=ax.get_yaxis_transform(),
+                va="center", ha="left",
                 fontsize=11, family="monospace")
-        ax.text(col_p_x, y, p_text, va="center", ha="left",
+        ax.text(col_p_x, y, p_text,
+                transform=ax.get_yaxis_transform(),
+                va="center", ha="left",
                 fontsize=11, family="monospace")
-        ax.text(col_q_x, y, q_text, va="center", ha="left",
+        ax.text(col_q_x, y, q_text,
+                transform=ax.get_yaxis_transform(),
+                va="center", ha="left",
                 fontsize=11, family="monospace")
 
-    # Extend x-axis to fit annotations
+    # Keep x-axis limits focused on the HR data only (not the annotations)
     ax.set_xlim(left=min(df_plot["HR_lower_95"].min() * 0.8, 0.5),
-                right=col_q_x * 2.0)
+                right=4.5)
 
     # Title
     fig.text(0.05, 0.95, title_prefix,
