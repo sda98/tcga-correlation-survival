@@ -453,7 +453,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     n = len(df_plot)
     fig_height = max(4, 0.6 * n + 2)
-    fig, ax = plt.subplots(figsize=(14, fig_height))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
 
     y_positions = np.arange(n)
 
@@ -481,60 +481,26 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.set_xlabel("Hazard Ratio (95% CI)", fontsize=14, fontweight="bold")
     ax.tick_params(labelsize=12)
 
-    # Annotations placed to the right of the plot box in axes coordinates
-    # (x > 1.0 means outside the right edge of the data area)
-    header_y = n - 0.4
+    # Per-bar annotations: P-value and P_adj beside each HR point
+    def sci_notation(val):
+        """Format as scientific notation for display, e.g., 9.92e-02."""
+        if pd.isna(val):
+            return "NA"
+        return f"{val:.2e}"
 
-    # Column x-positions in axes fraction (0 = left edge, 1 = right edge of plot box)
-    col_hr_x = 1.04
-    col_ci_x = 1.18
-    col_p_x = 1.42
-    col_q_x = 1.68
-
-    # Column headers above the top row
-    ax.text(col_hr_x, header_y, "HR",
-            transform=ax.get_yaxis_transform(),
-            va="bottom", ha="left",
-            fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_ci_x, header_y, "95% CI",
-            transform=ax.get_yaxis_transform(),
-            va="bottom", ha="left",
-            fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_p_x, header_y, "P-value (Wald)",
-            transform=ax.get_yaxis_transform(),
-            va="bottom", ha="left",
-            fontsize=12, fontweight="bold", family="monospace")
-    ax.text(col_q_x, header_y, "P_adj (B-H)",
-            transform=ax.get_yaxis_transform(),
-            va="bottom", ha="left",
-            fontsize=12, fontweight="bold", family="monospace")
-
-    # Data rows
     for y, (_, row) in zip(y_positions, df_plot.iterrows()):
-        hr_text = f"{row['HR']:.2f}"
-        ci_text = f"({row['HR_lower_95']:.2f}–{row['HR_upper_95']:.2f})"
-        p_text = f"{row['p_value']:.3g}" if pd.notna(row["p_value"]) else "NA"
-        q_text = f"{row['q_value']:.3g}" if pd.notna(row["q_value"]) else "NA"
-        ax.text(col_hr_x, y, hr_text,
-                transform=ax.get_yaxis_transform(),
-                va="center", ha="left",
-                fontsize=11, family="monospace")
-        ax.text(col_ci_x, y, ci_text,
-                transform=ax.get_yaxis_transform(),
-                va="center", ha="left",
-                fontsize=11, family="monospace")
-        ax.text(col_p_x, y, p_text,
-                transform=ax.get_yaxis_transform(),
-                va="center", ha="left",
-                fontsize=11, family="monospace")
-        ax.text(col_q_x, y, q_text,
-                transform=ax.get_yaxis_transform(),
-                va="center", ha="left",
-                fontsize=11, family="monospace")
+        # Position annotations just to the right of the upper CI tip
+        x_anchor = row["HR_upper_95"] * 1.08
+        p_text = f"P-value = {sci_notation(row['p_value'])}"
+        q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
+        ax.text(x_anchor, y + 0.12, p_text,
+                va="center", ha="left", fontsize=9)
+        ax.text(x_anchor, y - 0.18, q_text,
+                va="center", ha="left", fontsize=9)
 
-    # Keep x-axis limits focused on the HR data only (not the annotations)
+    # X-axis limits: data area only, with a bit of room for the footnotes
     ax.set_xlim(left=min(df_plot["HR_lower_95"].min() * 0.8, 0.5),
-                right=4.5)
+                right=max(4.5, df_plot["HR_upper_95"].max() * 2.5))
 
     # Title
     fig.text(0.05, 0.95, title_prefix,
