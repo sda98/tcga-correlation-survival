@@ -4,7 +4,7 @@
 
 Kaplan-Meier survival analysis for multi-gene expression groups.
 Splits patients into High/Low for each gene, creates 2^N combo groups,
-and plots KM curves with risk tables. Supports 2 or 3 genes.
+and plots KM curves with risk tables. Supports 2 or more genes.
 """
 
 import os
@@ -153,6 +153,17 @@ def assign_groups(dat, genes, split=None):
     dat["Combo"] = dat[g_cols].agg("/".join, axis=1)
 
     print(f"  Group sizes: {dat['Combo'].value_counts().to_dict()}")
+
+    # Warn about underpowered groups (Peduzzi et al. 1995, J Clin Epidemiol)
+    MIN_EVENTS = 10
+    group_events = dat.groupby("Combo")["OS"].sum()
+    underpowered = group_events[group_events < MIN_EVENTS]
+    if len(underpowered) > 0:
+        print(f"  ⚠ WARNING: Groups with fewer than {MIN_EVENTS} events detected:")
+        for group, n_events in underpowered.items():
+            print(f"    {group}: {int(n_events)} events")
+        print(f"  Results for these groups may be unreliable")
+        
     return dat
 
 def compute_logrank_pvalue(dat):
@@ -301,6 +312,16 @@ def make_km_plot(dat, genes, title_prefix, output_path,
         fontsize=26, fontweight="bold",
         verticalalignment="top",
     )
+                     
+    # Gene-order header above group labels
+    ax_risk.text(
+        -0.06, len(groups) - 0.3,
+        "/".join(genes),
+        ha="right", va="center",
+        fontsize=16, fontweight="bold", fontstyle="italic",
+        color="black",
+        transform=ax_risk.get_yaxis_transform(),
+    )                 
 
     # Risk table: group labels and counts
     for i, group in enumerate(groups):
@@ -442,8 +463,6 @@ def main():
 
     if len(genes) == 2:
         run_2gene_survival(genes)
-    elif len(genes) == 3:
-        run_3gene_survival(genes)
     else:
         run_multigene_cox(genes)
 
