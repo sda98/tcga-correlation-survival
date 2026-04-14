@@ -446,6 +446,10 @@ def make_forest_plot(df, title_prefix, output_path):
     if len(df_plot) == 0:
         print(f"  No valid Cox results to plot for {title_prefix}.")
         return
+    if len(df_plot) > 20:
+        print(f"  Skipping forest plot for {title_prefix}: {len(df_plot)} genes exceeds max of 20.")
+        print(f"  See CSV table for full results.")
+        return
 
     # Sort for display: most significant (smallest q) at top
     df_plot = df_plot.sort_values("q_value", ascending=True).reset_index(drop=True)
@@ -456,11 +460,11 @@ def make_forest_plot(df, title_prefix, output_path):
     fig, ax = plt.subplots(figsize=(8, fig_height))
 
     # Dynamic font sizing scaled to N genes
-    gene_label_font = min(20, 12 + n // 2)
-    axis_tick_font = min(16, 10 + n // 3)
-    axis_title_font = min(20, 13 + n // 3)
-    plot_title_font = min(28, 16 + n // 2)
-    annot_font = min(12, 6 + n // 3)
+    gene_label_font = min(28, 14 + n)
+    axis_tick_font = min(24, 12 + n)
+    axis_title_font = min(28, 16 + n)
+    plot_title_font = min(36, 20 + n)
+    annot_font = min(16, 8 + n // 2)
 
     y_positions = np.arange(n)
 
@@ -501,9 +505,9 @@ def make_forest_plot(df, title_prefix, output_path):
         x_anchor = row["HR_upper_95"] * 1.08
         p_text = f"$P$ = {sci_notation(row['p_value'])}"
         q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
-        ax.text(x_anchor, y + 0.12, p_text,
+        ax.text(x_anchor, y + 0.18, p_text,
                 va="center", ha="left", fontsize=annot_font)
-        ax.text(x_anchor, y - 0.12, q_text,
+        ax.text(x_anchor, y - 0.18, q_text,
                 va="center", ha="left", fontsize=annot_font)
 
     # X-axis limits: data area only, with a bit of room for the footnotes
@@ -557,6 +561,9 @@ def run_2gene_survival(genes):
         xlim_days=config["aml_xlim_days"],
         break_time=config["aml_break_time"],
     )
+    with open(os.path.join(RESULTS_DIR, "survival_done.txt"), "w") as f:
+        f.write("done\n")
+    
 
 def run_multigene_cox(genes):
     print(f"=== Pan-Cancer Cox Analysis ({len(genes)} genes) ===")
@@ -577,6 +584,8 @@ def run_multigene_cox(genes):
     print(f"  Saved table: results/cox_aml.csv")
     make_forest_plot(df_aml, "Acute Myeloid Leukemia",
                      os.path.join(RESULTS_DIR, "cox_forest_aml.png"))
+    with open(os.path.join(RESULTS_DIR, "survival_done.txt"), "w") as f:
+        f.write("done\n")
 
 
 def main():
