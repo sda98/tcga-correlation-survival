@@ -455,6 +455,13 @@ def make_forest_plot(df, title_prefix, output_path):
     fig_height = max(4, 0.6 * n + 2)
     fig, ax = plt.subplots(figsize=(8, fig_height))
 
+    # Dynamic font sizing scaled to N genes
+    gene_label_font = min(20, 12 + n // 2)
+    axis_tick_font = min(16, 10 + n // 3)
+    axis_title_font = min(20, 13 + n // 3)
+    plot_title_font = min(28, 16 + n // 2)
+    annot_font = min(12, 6 + n // 3)
+
     y_positions = np.arange(n)
 
     # Error bars (95% CI)
@@ -469,7 +476,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     # Gene labels on y-axis (italic)
     ax.set_yticks(y_positions)
-    ax.set_yticklabels(df_plot["gene"], fontsize=14, fontstyle="italic")
+    ax.set_yticklabels(df_plot["gene"], fontsize=gene_label_font, fontstyle="italic")
     ax.set_ylim(-0.6, n - 0.4)
 
     # Log-scale x-axis with explicit tick marks
@@ -479,8 +486,8 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.xaxis.set_major_locator(FixedLocator(tick_values))
     ax.xaxis.set_major_formatter(FixedFormatter([str(t) for t in tick_values]))
     ax.xaxis.set_minor_locator(plt.NullLocator())
-    ax.set_xlabel("Hazard Ratio", fontsize=14, fontweight="bold")
-    ax.tick_params(labelsize=12)
+    ax.set_xlabel("Hazard Ratio", fontsize=axis_title_font, fontweight="bold")
+    ax.tick_params(labelsize=axis_tick_font)
 
     # Per-bar annotations: P-value and P_adj beside each HR point
     def sci_notation(val):
@@ -494,10 +501,10 @@ def make_forest_plot(df, title_prefix, output_path):
         x_anchor = row["HR_upper_95"] * 1.08
         p_text = f"$P$ = {sci_notation(row['p_value'])}"
         q_text = f"$P_{{adj}}$ = {sci_notation(row['q_value'])}"
-        ax.text(x_anchor, y + 0.08, p_text,
-                va="center", ha="left", fontsize=7)
-        ax.text(x_anchor, y - 0.08, q_text,
-                va="center", ha="left", fontsize=7)
+        ax.text(x_anchor, y + 0.12, p_text,
+                va="center", ha="left", fontsize=annot_font)
+        ax.text(x_anchor, y - 0.12, q_text,
+                va="center", ha="left", fontsize=annot_font)
 
     # X-axis limits: data area only, with a bit of room for the footnotes
     ax.set_xlim(left=min(df_plot["HR_lower_95"].min() * 0.8, 0.5),
@@ -505,7 +512,7 @@ def make_forest_plot(df, title_prefix, output_path):
 
     # Title
     fig.text(0.05, 0.95, title_prefix,
-             fontsize=18, fontweight="bold",
+             fontsize=plot_title_font, fontweight="bold",
              verticalalignment="top")
 
     # Clean spines
