@@ -460,7 +460,7 @@ def make_forest_plot(df, title_prefix, output_path):
     fig, ax = plt.subplots(figsize=(8, fig_height))
 
     # Dynamic font sizing scaled to N genes
-    gene_label_font = min(16, 12 + n // 8)
+    gene_label_font = min(14, 12 + n // 7)
     axis_tick_font = min(22, 13 + n // 2)
     axis_title_font = min(22, 14 + n // 3)
     plot_title_font = min(28, 17 + n // 3)
