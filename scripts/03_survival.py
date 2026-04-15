@@ -524,9 +524,9 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.spines["right"].set_visible(False)
 
     plt.tight_layout(rect=[0, 0, 1, 0.90])
-    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.savefig(output_path, dpi=300)
     github_path = output_path.replace(".png", "_github.png")
-    plt.savefig(github_path, dpi=150, bbox_inches="tight")
+    plt.savefig(github_path, dpi=150)
     plt.close()
     print(f"  Saved forest plot: {output_path}")
 
