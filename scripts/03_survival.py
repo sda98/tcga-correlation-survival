@@ -491,7 +491,7 @@ def make_forest_plot(df, title_prefix, output_path):
     ax.xaxis.set_major_formatter(FixedFormatter([str(t) for t in tick_values]))
     ax.xaxis.set_minor_locator(plt.NullLocator())
     ax.set_xlabel("Hazard Ratio", fontsize=axis_title_font, fontweight="bold")
-    ax.tick_params(labelsize=axis_tick_font)
+    ax.tick_params(axis="x", labelsize=axis_tick_font)
 
     # Per-bar annotations: P-value and P_adj beside each HR point
     def sci_notation(val):
