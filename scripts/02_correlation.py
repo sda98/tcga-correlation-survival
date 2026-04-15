@@ -4,7 +4,6 @@
 
 Computes Spearman correlation and orthogonal regression (TLS via SVD)
 between two genes across TCGA pan-cancer and AML samples.
-Produces scatter plots and saves high-expression samples.
 
 """
 
