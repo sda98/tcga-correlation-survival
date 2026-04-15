@@ -3,8 +3,6 @@
 03_survival.py
 
 Kaplan-Meier survival analysis for multi-gene expression groups.
-Splits patients into High/Low for each gene, creates 2^N combo groups,
-and plots KM curves with risk tables. Supports 2 or more genes.
 """
 
 import os
