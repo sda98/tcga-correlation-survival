@@ -2,7 +2,39 @@
 """
 03_survival.py
 
-Kaplan-Meier survival analysis for multi-gene expression groups.
+Runs survival analyses on TCGA pan-cancer and AML cohorts. The analysis
+branches on the number of input genes:
+
+    - 2 genes  → Patients are split High/Low per gene (median or optimally
+                 selected cutpoints via maximally selected rank statistics),
+                 producing four combo groups (High/High, High/Low, Low/High,
+                 Low/Low). Kaplan-Meier curves are compared with the log-rank
+                 test. Groups with fewer than 10 events are flagged as
+                 underpowered (Peduzzi et al., 1995, J Clin Epidemiol).
+
+    - 3+ genes → Univariate Cox proportional hazards regression per gene,
+                 using continuous expression as the predictor. Per-gene
+                 hazard ratios with 95% CIs and Wald p-values are reported,
+                 with Benjamini-Hochberg FDR correction applied across the
+                 gene set. Forest plots are generated for up to 20 genes
+                 (CSV-only beyond that).
+
+Both analyses are run for two cohorts:
+    - Pan-cancer (all TCGA samples)
+    - AML (samples with the TCGA-AB prefix, configurable in config.yaml)
+
+Inputs are passed via --genes (comma-separated gene symbols), e.g.:
+    python scripts/03_survival.py --genes TP53,MDM2
+    python scripts/03_survival.py --genes TP53,MDM2,JAK2,BRCA1
+
+Outputs (under results/):
+    - survival_km_{pancancer,aml}.png        (2-gene mode, KM curves)
+    - survival_cox_{pancancer,aml}.png       (3+ gene mode, forest plots)
+    - survival_cox_{pancancer,aml}.csv       (3+ gene mode, Cox table with
+                                              β coefficients, standard errors,
+                                              HR, 95% CI, p-values, BH-adjusted
+                                              p-values, and event counts)
+    - survival_done.txt                      (Snakemake flag file)
 """
 
 import os
