@@ -2,10 +2,25 @@
 """
 01_data_prep.py
 
-Downloads TCGA PANCAN expression and survival data from UCSC Xena,
-converts log2(TPM+0.001) to log2(TPM+1), maps Ensembl IDs to HUGO
-gene symbols, and saves cleaned outputs for downstream analysis.
+Downloads and preprocesses TCGA pan-cancer expression and survival data
+from UCSC Xena for downstream correlation and survival analyses.
 
+Pipeline:
+    1. Download gene expression (TCGA RSEM gene TPM, log2(TPM+0.001))
+       and survival metadata if not already cached locally.
+    2. Convert expression values from log2(TPM+0.001) to log2(TPM+1)
+       for more conventional downstream handling.
+    3. Trim TCGA sample ID suffixes (e.g., TCGA-A1-A0SB-01A-11R-A144-07
+       → TCGA-A1-A0SB-01A-11R-A144).
+    4. Map Ensembl gene IDs to HUGO gene symbols via the MyGene.info API,
+       deduplicating by keeping the most recent Ensembl ID per symbol.
+    5. Clip negative expression values to zero.
+    6. Save cleaned expression matrix and survival table to the results
+       directory for use by 02_correlation.py and 03_survival.py.
+
+Outputs:
+    - results/expression_clean.tsv
+    - results/survival_clean.tsv
 """
 
 import os
