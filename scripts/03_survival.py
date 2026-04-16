@@ -540,7 +540,7 @@ def run_2gene_survival(genes):
     make_km_plot(
         dat_pan, genes,
         title_prefix="Pan-Cancer",
-        output_path=os.path.join(RESULTS_DIR, "survival_pancancer.png"),
+        output_path=os.path.join(RESULTS_DIR, "survival_km_pancancer.png"),
         xlim_days=config["pancancer_xlim_days"],
         break_time=config["pancancer_break_time"],
     )
@@ -555,7 +555,7 @@ def run_2gene_survival(genes):
     make_km_plot(
         dat_aml, genes,
         title_prefix="Acute Myeloid Leukemia",
-        output_path=os.path.join(RESULTS_DIR, "survival_aml.png"),
+        output_path=os.path.join(RESULTS_DIR, "survival_km_aml.png"),
         xlim_days=config["aml_xlim_days"],
         break_time=config["aml_break_time"],
     )
@@ -568,20 +568,20 @@ def run_multigene_cox(genes):
     dat_pan = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes)
     print(f"  Merged samples: {len(dat_pan)}")
     df_pan = run_cox_fdr(dat_pan, genes)
-    df_pan.to_csv(os.path.join(RESULTS_DIR, "cox_pancancer.csv"), index=False)
-    print(f"  Saved table: results/cox_pancancer.csv")
+    df_pan.to_csv(os.path.join(RESULTS_DIR, "survival_cox_pancancer.csv"), index=False)
+    print(f"  Saved table: results/survival_cox_pancancer.csv")
     make_forest_plot(df_pan, "Pan-Cancer",
-                     os.path.join(RESULTS_DIR, "cox_forest_pancancer.png"))
+                     os.path.join(RESULTS_DIR, "survival_cox_pancancer.png"))
 
     print(f"\n=== AML Cox Analysis ({len(genes)} genes) ===")
     dat_aml = load_and_merge(EXPRESSION_FILE, SURVIVAL_FILE, genes,
                              sample_filter=AML_PREFIX)
     print(f"  Merged AML samples: {len(dat_aml)}")
     df_aml = run_cox_fdr(dat_aml, genes)
-    df_aml.to_csv(os.path.join(RESULTS_DIR, "cox_aml.csv"), index=False)
-    print(f"  Saved table: results/cox_aml.csv")
+    df_aml.to_csv(os.path.join(RESULTS_DIR, "survival_cox_aml.csv"), index=False)
+    print(f"  Saved table: results/survival_cox_aml.csv")
     make_forest_plot(df_aml, "Acute Myeloid Leukemia",
-                     os.path.join(RESULTS_DIR, "cox_forest_aml.png"))
+                     os.path.join(RESULTS_DIR, "survival_cox_aml.png"))
     with open(os.path.join(RESULTS_DIR, "survival_done.txt"), "w") as f:
         f.write("done\n")
 
