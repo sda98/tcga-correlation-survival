@@ -219,9 +219,13 @@ data/PANCAN_survival.txt
 results/expression_clean.tsv
 results/survival_clean.tsv
 
-# Full-size plot images (too large for GitHub)
-results/correlation_pancancer.png
-results/correlation_aml.png
-results/survival_pancancer.png
-results/survival_aml.png
+# Full-size plot images (too large for GitHub) - keep only _github.png versions
+results/correlation_scatter_pancancer.png
+results/correlation_scatter_aml.png
+results/correlation_heatmap_pancancer.png
+results/correlation_heatmap_aml.png
+results/survival_km_pancancer.png
+results/survival_km_aml.png
+results/survival_cox_pancancer.png
+results/survival_cox_aml.png
 results/dag.png

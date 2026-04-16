@@ -344,8 +344,7 @@ def make_scatter_plot(expr_df, gene1, gene2, slope, intercept, annotation,
         title_suffix,
         fontsize=27, fontweight="bold",
         loc="left",
-        pad=25,
-        bbox=dict(boxstyle="round,pad=0.3", facecolor="#FFFFCC", edgecolor="black"),
+        pad=13,
     )
 
     plt.tight_layout()
