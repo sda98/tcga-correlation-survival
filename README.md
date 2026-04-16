@@ -2,33 +2,7 @@
 
 Note: The code is currently being updated by the author (Sergey Dadoyan), so it may not currently run as expected. If you have any questions, please contact the author.
 
-## Results
 
-### Correlation Analysis (ING5 vs FOXP1)
-
-
-Spearman rank correlation with Total Least Squares (orthogonal) regression, computed across 10,535 TCGA pan-cancer samples and 173 AML samples.
-
-| | Pan-Cancer | AML |
-|---|---|---|
-| **Spearman ρ** | 0.21 | 0.39 |
-| **P-value** | < 2.2e-16 | 7.9e-08 |
-
-**Pan-Cancer (n = 10,535):** Weak but highly significant positive correlation. 
-![Pan-Cancer Correlation](results/correlation_pancancer_github.png)
-
-**AML (n = 173):** Moderate positive correlation within the AML cohort.
-![AML Correlation](results/correlation_aml_github.png)
-
-### Survival Analysis
-
-Kaplan-Meier curves with optimally selected expression cutpoints (maximally selected rank statistics). Patients split into four groups based on High/Low expression of both genes.
-
-**Pan-Cancer (n = 14,029):** Log-rank P < 0.0001
-![Pan-Cancer Survival](results/survival_pancancer_github.png)
-
-**AML (n = 213):** Log-rank P = 0.032
-![AML Survival](results/survival_aml_github.png)
 
 ## Pipeline Overview
 
@@ -138,7 +112,33 @@ tcga-correlation-survival/
     ├── survival_aml.png
     └── ING5_FOXP1_top.csv
 ```
+## Results
 
+### Correlation Analysis (ING5 vs FOXP1)
+
+
+Spearman rank correlation with Total Least Squares (orthogonal) regression, computed across 10,535 TCGA pan-cancer samples and 173 AML samples.
+
+| | Pan-Cancer | AML |
+|---|---|---|
+| **Spearman ρ** | 0.21 | 0.39 |
+| **P-value** | < 2.2e-16 | 7.9e-08 |
+
+**Pan-Cancer (n = 10,535):** Weak but highly significant positive correlation. 
+![Pan-Cancer Correlation](results/correlation_pancancer_github.png)
+
+**AML (n = 173):** Moderate positive correlation within the AML cohort.
+![AML Correlation](results/correlation_aml_github.png)
+
+### Survival Analysis
+
+Kaplan-Meier curves with optimally selected expression cutpoints (maximally selected rank statistics). Patients split into four groups based on High/Low expression of both genes.
+
+**Pan-Cancer (n = 14,029):** Log-rank P < 0.0001
+![Pan-Cancer Survival](results/survival_pancancer_github.png)
+
+**AML (n = 213):** Log-rank P = 0.032
+![AML Survival](results/survival_aml_github.png)
 ## Dependencies
 
 | Package | Purpose |
