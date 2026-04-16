@@ -2,9 +2,29 @@
 """
 02_correlation.py
 
-Computes Spearman correlation and orthogonal regression (TLS via SVD)
-between two genes across TCGA pan-cancer and AML samples.
+Computes gene-gene expression correlations across TCGA pan-cancer and AML
+cohorts. The analysis branches on the number of input genes:
 
+    - 2 genes  → Spearman rank correlation + Total Least Squares (orthogonal)
+                 regression via SVD. Outputs a scatter plot with regression
+                 line and a stats annotation (ρ and p-value).
+
+    - 3+ genes → Pairwise Spearman correlation matrix. Outputs a heatmap
+                 annotated with correlation values and significance markers
+                 (*** p<0.001, ** p<0.01, * p<0.05).
+
+Both analyses are run for two cohorts:
+    - Pan-cancer (all TCGA samples)
+    - AML (samples with the TCGA-AB prefix, configurable in config.yaml)
+
+Inputs are passed via --genes (comma-separated gene symbols), e.g.:
+    python scripts/02_correlation.py --genes TP53,MDM2
+    python scripts/02_correlation.py --genes TP53,MDM2,JAK2,BRCA1
+
+Outputs (under results/):
+    - correlation_scatter_{pancancer,aml}.png   (2-gene mode)
+    - correlation_heatmap_{pancancer,aml}.png   (3+ gene mode)
+    - correlation_done.txt                      (Snakemake flag file)
 """
 
 import os
