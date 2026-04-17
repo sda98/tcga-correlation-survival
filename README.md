@@ -196,7 +196,7 @@ The pipeline adapts its outputs based on input size. Below are example runs demo
 
 ![Pan-Cancer correlation heatmap](results/correlation_heatmap_pancancer_github.png)
 
-**Pan-Cancer Cox forest plot**
+**Pan-Cancer Cox forest plot (log scale)**
 
 Per-gene univariate hazard ratios with 95% confidence intervals, Wald p-values, and Benjamini-Hochberg adjusted p-values. The full table including β coefficients, standard errors, and per-cohort event counts is in [`results/survival_cox_pancancer.csv`](results/survival_cox_pancancer.csv).
 
