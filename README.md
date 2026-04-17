@@ -6,7 +6,7 @@ A reproducible Snakemake pipeline for exploring gene co-expression and survival 
 
 ## Motivation
 
-Gene co-expression patterns and their association with patient survival are critical for cancer transcriptomics. TCGA provides one of the largest uniformly-processed pan-cancer expression datasets, but exploratory analyses typically require combining Python/R, and manual plotting. This pipeline aims to provide a single reproducible entry point: specify a set of genes, and receive publication-ready correlation and survival outputs for both pan-cancer and disease-specific (AML) contexts. The pipeline is intended for bioinformaticians, cancer researchers, and PIs who need quick hypothesis-generating outputs grounded in standard statistical methods.
+Gene expression patterns and their association with patient survival are central questions in cancer research. The Cancer Genome Atlas (TCGA) is one of the largest pan-cancer datasets available, yet most exploratory analyses still require stitching together Python, R, and manual visualization. This pipeline lets users provide a list of genes and receive correlation and survival outputs, along with the statistical analyses that support them. Outputs are generated for both pan-cancer and acute myeloid leukemia (AML) cohorts. Future releases will allow users to restrict the analysis to a specific cancer type of interest.
 
 ## Table of Contents
 
