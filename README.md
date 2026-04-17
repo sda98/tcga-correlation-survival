@@ -152,9 +152,9 @@ tcga-correlation-survival/
 │   └── TCGA_master_clinical_survival.csv
 └── results/
     ├── expression_clean.tsv
-    ├── correlation_scatter_{pancancer,aml}.png     # 2-gene mode
+    ├── correlation_scatter_{pancancer,aml}.png     # 2 gene mode
     ├── correlation_heatmap_{pancancer,aml}.png     # 3+ gene mode
-    ├── survival_km_{pancancer,aml}.png             # 2-gene mode
+    ├── survival_km_{pancancer,aml}.png             # 2 gene mode
     ├── survival_cox_{pancancer,aml}.png            # 3+ gene mode
     └── survival_cox_{pancancer,aml}.csv            # 3+ gene mode
 ```
