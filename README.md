@@ -89,7 +89,7 @@ The pipeline automatically downloads the expression data (~700 MB, gzipped) on f
 Specify genes via `--config genes=` and choose how many you want:
 
 ```bash
-# 2-gene analysis (scatter + KM curves)
+# 2 gene analysis (scatter + KM curves)
 snakemake --cores 5 --latency-wait 30 --config genes=TP53,MDM2
 
 # 3+ gene analysis (heatmap + Cox forest plots)
@@ -129,7 +129,7 @@ Gene selection is command-line only (`--config genes=...`), not in `config.yaml`
 
 ### Correlation Analysis
 - **Spearman rank correlation** for all pairs (Spearman, 1904; via `scipy.stats.spearmanr`)
-- **2-gene**: Total Least Squares regression via Singular Value Decomposition (`numpy.linalg.svd`) — minimizes perpendicular distances, appropriate when both variables carry measurement error
+- **2 genes**: Total Least Squares regression via Singular Value Decomposition (`numpy.linalg.svd`) — minimizes perpendicular distances, appropriate when both variables carry measurement error
 - **3+ genes**: Pairwise Spearman heatmap annotated with significance (\*\*\* p<0.001, \*\* p<0.01, \* p<0.05)
 
 ### Survival Analysis
