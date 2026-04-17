@@ -38,7 +38,7 @@ config.yaml + --config genes=X,Y,Z
                       3+ genes: univariate Cox regression + BH-FDR + forest plots
 ```
 
-Orchestrated by Snakemake — run the full analysis with one command.
+Snakemake allows users to the whole analysis with one command. 
 
 ### DAG (Directed Acyclic Graph)
 
